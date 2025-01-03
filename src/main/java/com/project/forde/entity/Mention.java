@@ -1,25 +1,26 @@
 
 package com.project.forde.entity;
 
-import com.project.forde.entity.composite.BoardViewPK;
-import jakarta.persistence.*;
+import com.project.forde.entity.composite.MentionPK;
+import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "board_view")
+@Table(name = "mention")
 @DynamicInsert
-public class BoardView {
+public class Mention {
     @EmbeddedId
-    private BoardViewPK boardViewPK;
+    private MentionPK mentionPK;
 
     @CreationTimestamp
     @Column(name = "created_time", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")

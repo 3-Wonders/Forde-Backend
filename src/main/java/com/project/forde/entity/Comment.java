@@ -37,13 +37,16 @@ public class Comment {
 
     @Lob
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
-    private String content; //댓글 내용
+    private String content;
+
+    @Column(name = "is_adopt")
+    private Boolean isAdopt;
 
     @CreationTimestamp
     @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdTime; //생성된 시간
+    private LocalDateTime createdTime;
 
     @CreationTimestamp
     @Column(name = "updated_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime updatedTime; //업데이트 시간
+    private LocalDateTime updatedTime;
 }
