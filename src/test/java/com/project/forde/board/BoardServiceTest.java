@@ -4,7 +4,6 @@ import com.project.forde.AbstractTest;
 import com.project.forde.dto.FileDto;
 import com.project.forde.dto.board.BoardDto;
 import com.project.forde.entity.Board;
-import com.project.forde.entity.DummyImage;
 import com.project.forde.entity.Tag;
 import com.project.forde.exception.CustomException;
 import com.project.forde.repository.*;

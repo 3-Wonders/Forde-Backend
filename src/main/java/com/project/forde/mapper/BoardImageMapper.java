@@ -1,8 +1,8 @@
 package com.project.forde.mapper;
 
-import com.project.forde.entity.Board;
+import com.project.forde.dto.FileDto;
+import com.project.forde.dto.dummyImage.DummyImageDto;
 import com.project.forde.entity.BoardImage;
-import com.project.forde.entity.DummyImage;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -11,10 +11,13 @@ import org.mapstruct.factory.Mappers;
 public interface BoardImageMapper {
     BoardImageMapper INSTANCE = Mappers.getMapper(BoardImageMapper.class);
 
-    @Mapping(source = "board", target = "board")
-    @Mapping(source = "image.imageSize", target = "imageSize")
-    @Mapping(source = "image.imageType", target = "imageType")
-    @Mapping(source = "image.imagePath", target = "imagePath")
+    @Mapping(source = "image.size", target = "imageSize")
+    @Mapping(source = "image.extension", target = "imageType")
+    @Mapping(source = "image.storePath", target = "imagePath")
     @Mapping(target = "createdTime", ignore = true)
-    BoardImage toEntity(Board board, DummyImage image);
+    BoardImage toEntityWithoutBoard(FileDto image);
+
+    @Mapping(source = "image.imageId", target = "imageId")
+    @Mapping(source = "image.imagePath", target = "path")
+    DummyImageDto.Response.Image toImage(BoardImage image);
 }

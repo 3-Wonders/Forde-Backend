@@ -1,9 +1,9 @@
-package com.project.forde.dummy;
+package com.project.forde.boardImage;
 
 import com.project.forde.AbstractTest;
 import com.project.forde.dto.FileDto;
-import com.project.forde.repository.DummyImageRepository;
-import com.project.forde.service.DummyImageService;
+import com.project.forde.repository.BoardImageRepository;
+import com.project.forde.service.BoardImageService;
 import com.project.forde.util.FileStore;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -18,13 +18,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @ExtendWith({ MockitoExtension.class })
-public class DummyImageServiceTest extends AbstractTest {
+public class BoardImageServiceTest extends AbstractTest {
     @Mock
     private FileStore fileStore;
     @Mock
-    private DummyImageRepository dummyImageRepository;
+    private BoardImageRepository boardImageRepository;
     @InjectMocks
-    private DummyImageService dummyImageService;
+    private BoardImageService boardImageService;
 
     @Test
     @DisplayName("더미 이미지 추가")
@@ -38,10 +38,10 @@ public class DummyImageServiceTest extends AbstractTest {
                         .extension("image/jpeg")
                         .build()
                 );
-        Mockito.when(dummyImageRepository.save(Mockito.any())).thenReturn(super.getDummyImage());
+        Mockito.when(boardImageRepository.save(Mockito.any())).thenReturn(super.getBoardImage());
 
-        dummyImageService.createImage(super.getMockMultipartFile());
+        boardImageService.createImage(super.getMockMultipartFile());
 
-        Mockito.verify(dummyImageRepository, Mockito.times(1)).save(ArgumentMatchers.any());
+        Mockito.verify(boardImageRepository, Mockito.times(1)).save(ArgumentMatchers.any());
     }
 }

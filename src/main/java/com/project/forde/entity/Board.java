@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "board")
 @DynamicInsert
+@DynamicUpdate
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +38,7 @@ public class Board {
     private String content; // HTML이 저장됨
 
     @Column(name = "thumbnail_path", length = 100)
-    private String thumbnailPath; //썸네일
+    private String thumbnailPath;
 
     @Column(name = "thumbnail_type", length = 20)
     private String thumbnailType;

@@ -65,4 +65,10 @@ public class BoardController {
         Long boardId = boardService.create(1L, request);
         return ResponseEntity.created(URI.create("/" + boardId)).build();
     }
+
+    @PatchMapping(value = "/board/{boardId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateBoard(@PathVariable("boardId") final Long boardId, @Valid @ModelAttribute final BoardDto.Request request) {
+        boardService.update(1L, boardId, request);
+        return ResponseEntity.noContent().build();
+    }
 }

@@ -75,18 +75,18 @@ public class FileStore {
 
     public void deleteFile(String storePath) {
         log.info("delete file: [name : {}]", storePath);
-        Blob file = bucket.get(storePath);
-
-        if (file == null) {
-            log.error("Failed to delete file because file not found. [name : {}]", storePath);
-            throw new CustomException(ErrorCode.ERROR_FILE_UPLOAD);
-        }
 
         try {
+            Blob file = bucket.get(storePath);
+
+            if (file == null) {
+                log.error("Failed to delete file because file not found. [name : {}]", storePath);
+                return;
+            }
+
             file.delete();
         } catch (Exception e) {
             log.error("Failed to delete file because can not delete file. [path : {}, reason : {}]", storePath, e.getMessage());
-            throw new CustomException(ErrorCode.ERROR_FILE_UPLOAD);
         }
     }
 }

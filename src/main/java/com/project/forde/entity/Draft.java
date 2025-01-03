@@ -26,10 +26,14 @@ public class Draft {
     @JoinColumn(name = "uploader_id", nullable = false, columnDefinition = "INT UNSIGNED")
     private AppUser uploader;
 
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "thumbnail_id", columnDefinition = "INT UNSIGNED")
-    private DummyImage thumbnail;
+    @Column(name = "thumbnail_path", length = 100)
+    private String thumbnailPath;
+
+    @Column(name = "thumbnail_type", length = 20)
+    private String thumbnailType;
+
+    @Column(name = "thumbnail_size", columnDefinition = "INT UNSIGNED")
+    private Long thumbnailSize;
 
     @Column(name = "category", nullable = false, columnDefinition = "CHAR(1)")
     private Character category;
