@@ -3,6 +3,7 @@ package com.project.forde.service;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Board;
 import com.project.forde.entity.BoardLike;
+import com.project.forde.entity.composite.BoardLikePK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.LikeMapper;
@@ -24,13 +25,13 @@ public class LikeService {
     public void createLike(Long userId, Long boardId) {
         AppUser user = appUserRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
         Board board = boardRepository.findById(boardId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
-        BoardLike like = likeRepository.findByUserAndBoard(user, board).orElse(null);
+        BoardLike like = likeRepository.findByBoardLikePK(new BoardLikePK(user, board)).orElse(null);
 
         if (like == null) {
             board.setLikeCount(board.getLikeCount() + 1);
 
             boardRepository.save(board);
-            likeRepository.save(LikeMapper.INSTANCE.toEntity(user, board));
+            likeRepository.save(LikeMapper.INSTANCE.toEntity(new BoardLikePK(user, board)));
         }
     }
 
@@ -38,7 +39,7 @@ public class LikeService {
     public void deleteLike(Long userId, Long boardId) {
         AppUser user = appUserRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
         Board board = boardRepository.findById(boardId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
-        BoardLike like = likeRepository.findByUserAndBoard(user, board).orElse(null);
+        BoardLike like = likeRepository.findByBoardLikePK(new BoardLikePK(user, board)).orElse(null);
 
         if (like != null) {
             board.setLikeCount(board.getLikeCount() - 1);

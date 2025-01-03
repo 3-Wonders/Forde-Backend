@@ -315,7 +315,7 @@ public class BoardServiceTest extends AbstractTest {
         Assertions.assertNotNull(detail.getCreatedTime());
 
         Mockito.verify(boardRepository, Mockito.times(1)).findBoardIncludeUploaderByBoardId(ArgumentMatchers.anyLong());
-        Mockito.verify(boardTagRepository, Mockito.times(1)).findAllByBoard(ArgumentMatchers.any());
+        Mockito.verify(boardTagRepository, Mockito.times(1)).findAllByBoardTagPK_Board(ArgumentMatchers.any());
     }
 
     @Test

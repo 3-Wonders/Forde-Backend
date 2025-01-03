@@ -5,7 +5,8 @@ import lombok.Getter;
 @Getter
 public enum BoardTypeEnum {
     N('N'),
-    B('B');
+    B('B'),
+    Q('Q');
 
     private final Character type;
 

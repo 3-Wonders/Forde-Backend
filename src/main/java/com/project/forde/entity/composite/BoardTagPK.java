@@ -15,7 +15,6 @@ import org.hibernate.annotations.OnDeleteAction;
 
 import java.io.Serializable;
 
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
