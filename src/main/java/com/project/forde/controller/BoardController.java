@@ -41,6 +41,14 @@ public class BoardController {
         return ResponseEntity.ok(boardService.getRecentPosts(page, count, SortBoardTypeEnum.B));
     }
 
+    @GetMapping("/question")
+    public ResponseEntity<?> getQuestions(
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.ok(boardService.getRecentPosts(page, count, SortBoardTypeEnum.Q));
+    }
+
     @GetMapping("/board/search")
     public ResponseEntity<?> getPostSearch(
             @RequestParam(value = "page", required = false, defaultValue = "1") final int page,

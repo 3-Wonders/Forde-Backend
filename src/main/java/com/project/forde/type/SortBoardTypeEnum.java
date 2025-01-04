@@ -6,7 +6,8 @@ import lombok.Getter;
 public enum SortBoardTypeEnum {
     ALL('A'),
     N('N'),
-    B('B');
+    B('B'),
+    Q('Q');
 
     private final Character type;
 
