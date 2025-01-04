@@ -14,12 +14,12 @@ import com.project.forde.repository.*;
 import com.project.forde.type.ImagePathEnum;
 import com.project.forde.type.SortBoardTypeEnum;
 import com.project.forde.util.FileStore;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BoardService {
     private final AppUserRepository appUserRepository;
     private final BoardRepository boardRepository;
@@ -127,7 +128,7 @@ public class BoardService {
         boardTagRepository.saveAll(boardTags);
 
         if (request.getImageIds() != null) {
-            List<BoardImage> dummyImages = boardImageRepository.findAllByImageIdIn(request.getImageIds());
+            List<BoardImage> dummyImages = boardImageRepository.findAllByImageIdInAndBoardIsNull(request.getImageIds());
 
             if (dummyImages.size() != request.getImageIds().size()) {
                 throw new CustomException(ErrorCode.BAD_REQUEST_IMAGE);
@@ -273,7 +274,11 @@ public class BoardService {
         diffSet.removeAll(existingIdSet);
 
         if (!diffSet.isEmpty()) {
-            List<BoardImage> dummyImages = boardImageRepository.findAllByImageIdIn(diffSet.stream().toList());
+            List<BoardImage> dummyImages = boardImageRepository.findAllByImageIdInAndBoardIsNull(diffSet.stream().toList());
+
+            if (dummyImages.size() != diffSet.size()) {
+                throw new CustomException(ErrorCode.BAD_REQUEST_IMAGE);
+            }
 
             for (BoardImage image : dummyImages) {
                 image.setBoard(board);
@@ -284,5 +289,41 @@ public class BoardService {
 
         // TODO: Kafka 또는 무언가를 사용하여 Topic을 발생시키고, 삭제할 이미지를 모아서 삭제하도록 요청 (fileStore.deleteFile())
         deleteImages.forEach(boardImage -> fileStore.deleteFile(boardImage.getImagePath()));
+    }
+
+    @Transactional
+    public void delete(final Long userId, final Long boardId) {
+        AppUser user = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        if (user.getDeleted()) {
+            throw new CustomException(ErrorCode.DELETED_USER);
+        }
+
+        Board board = boardRepository.findByBoardId(boardId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
+
+        if (!board.getUploader().getUserId().equals(userId)) {
+            throw new CustomException(ErrorCode.NOT_MATCHED_BOARD_UPLOADER);
+        }
+
+        List<BoardTag> boardTags = boardTagRepository.findAllByBoardTagPK_Board(board);
+        List<Tag> tags = boardTags.stream().map(tag -> tag.getBoardTagPK().getTag()).toList();
+
+        tags.forEach(tag -> tag.setTagCount(tag.getTagCount() - 1));
+
+        tagRepository.saveAll(tags);
+        boardTagRepository.deleteAll(boardTags);
+        boardRepository.delete(board);
+
+        List<BoardImage> boardImages = boardImageRepository.findAllByBoard(board);
+        List<String> imagePaths = new ArrayList<>(boardImages.stream().map(BoardImage::getImagePath).toList());
+        boardImageRepository.deleteAll(boardImages);
+
+        if (board.getThumbnailPath() != null) {
+            imagePaths.add(board.getThumbnailPath());
+        }
+
+        imagePaths.forEach(fileStore::deleteFile);
     }
 }

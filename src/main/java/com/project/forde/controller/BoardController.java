@@ -71,4 +71,10 @@ public class BoardController {
         boardService.update(1L, boardId, request);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping("/board/{boardId}")
+    public ResponseEntity<?> deleteBoard(@PathVariable("boardId") final Long boardId) {
+        boardService.delete(1L, boardId);
+        return ResponseEntity.noContent().build();
+    }
 }
