@@ -7,9 +7,11 @@ import com.project.forde.entity.*;
 import com.project.forde.entity.composite.BoardTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
+import com.project.forde.exception.FileUploadException;
 import com.project.forde.mapper.*;
 import com.project.forde.repository.*;
 
+import com.project.forde.type.ImagePathEnum;
 import com.project.forde.type.SortBoardTypeEnum;
 import com.project.forde.util.FileStore;
 import jakarta.transaction.Transactional;
@@ -138,12 +140,21 @@ public class BoardService {
             boardImageRepository.saveAll(dummyImages);
         }
 
-        if (request.getThumbnail() != null) {
-            FileDto file = fileStore.storeFile("board/", request.getThumbnail());
-            createdBoard.setThumbnailPath(file.getStorePath());
-            createdBoard.setThumbnailSize(file.getSize());
-            createdBoard.setThumbnailType(file.getExtension());
+        FileDto file = null;
+
+        try {
+            if (request.getThumbnail() != null) {
+                file = fileStore.storeFile(ImagePathEnum.BOARD.getPath(), request.getThumbnail());
+                createdBoard.setThumbnailPath(file.getStorePath());
+                createdBoard.setThumbnailSize(file.getSize());
+                createdBoard.setThumbnailType(file.getExtension());
+            }
+
             boardRepository.save(createdBoard);
+        } catch (Exception e) {
+            if (file != null) {
+                throw new FileUploadException(file.getStorePath());
+            }
         }
 
         return createdBoard.getBoardId();
@@ -166,29 +177,60 @@ public class BoardService {
             throw new CustomException(ErrorCode.NOT_MATCHED_BOARD_UPLOADER);
         }
 
-        List<Tag> newTags = tagRepository.findAllByTagIdIn(request.getTagIds());
-        if (newTags.size() != request.getTagIds().size() || newTags.isEmpty() || newTags.size() > 3) {
+        updateTags(board, request.getTagIds());
+        updateImages(board, request.getImageIds());
+
+        FileDto file = null;
+
+        try {
+            if (request.getThumbnail() != null) {
+                file = fileStore.storeFile(ImagePathEnum.BOARD.getPath(), request.getThumbnail());
+                board.setThumbnailPath(file.getStorePath());
+                board.setThumbnailSize(file.getSize());
+                board.setThumbnailType(file.getExtension());
+            } else {
+                board.setThumbnailPath(null);
+                board.setThumbnailSize(null);
+                board.setThumbnailType(null);
+            }
+
+            board.setTitle(request.getTitle());
+            board.setContent(request.getContent());
+            boardRepository.save(board);
+        } catch (Exception e) {
+            if (file != null) {
+                throw new FileUploadException(file.getStorePath());
+            }
+        }
+
+        // TODO: Kafka 또는 무언가를 사용하여 Topic을 발생시키고, 삭제할 이미지를 모아서 삭제하도록 요청 (fileStore.deleteFile())
+        if (oldBoardThumbnailPath != null) {
+            fileStore.deleteFile(oldBoardThumbnailPath);
+        }
+    }
+
+    private void updateTags(final Board board, final List<Long> newTagIds) {
+        List<Tag> newTags = tagRepository.findAllByTagIdIn(newTagIds);
+        if (newTags.size() != newTagIds.size() || newTags.isEmpty() || newTags.size() > 3) {
             throw new CustomException(ErrorCode.BAD_REQUEST_TAG);
         }
 
         // 원래 있던 태그들의 카운트를 감소시키고, 새로운 태그들의 카운트를 증가시킨다.
         List<BoardTag> boardTags = boardTagRepository.findAllByBoardTagPK_Board(board);
-        List<Tag> existingTags = tagRepository.findAllByTagIdIn(
-                boardTags.stream().map(
-                        boardTag -> boardTag.getBoardTagPK().getTag().getTagId()
-                ).toList()
-        );
-
-        Set<Long> existingTagIdSet = existingTags.stream().map(Tag::getTagId).collect(Collectors.toSet());
-        Set<Long> newTagIdSet = new HashSet<>(request.getTagIds());
-
-        // 새로운 태그 ID와 기존 태그 ID를 비교하여, 삭제할 태그를 찾아서 삭제한다.
-        List<Tag> decreaseTags = existingTags.stream().filter(
-                tag -> !newTagIdSet.contains(tag.getTagId())
+        List<Tag> existingTags = boardTags.stream().map(
+                boardTag -> boardTag.getBoardTagPK().getTag()
         ).toList();
 
+        Set<Long> existingTagIdSet = existingTags.stream().map(Tag::getTagId).collect(Collectors.toSet());
+        Set<Long> newTagIdSet = new HashSet<>(newTagIds);
+
+        // 새로운 태그 ID와 기존 태그 ID를 비교하여, 삭제할 태그를 찾아서 삭제한다.
         List<BoardTag> deleteBoardTags = boardTags.stream().filter(
                 boardTag -> !newTagIdSet.contains(boardTag.getBoardTagPK().getTag().getTagId())
+        ).toList();
+
+        List<Tag> decreaseTags = deleteBoardTags.stream().map(
+                boardTag -> boardTag.getBoardTagPK().getTag()
         ).toList();
 
         List<Tag> increaseTags = newTags.stream().filter(
@@ -210,17 +252,21 @@ public class BoardService {
 
         boardTagRepository.deleteAllInBatch(deleteBoardTags);
         boardTagRepository.saveAll(addBoardTags);
+    }
 
+    private void updateImages(final Board board, final List<Long> newImageIds) {
         List<BoardImage> boardImages = boardImageRepository.findAllByBoard(board);
         Set<Long> existingIdSet = boardImages.stream().map(BoardImage::getImageId).collect(Collectors.toSet());
-        Set<Long> newIdSet = new HashSet<>(request.getImageIds());
+        Set<Long> newIdSet = new HashSet<>(newImageIds);
 
         // 새로운 이미지 ID와 기존 이미지 ID를 비교하여, 삭제할 이미지를 찾아서 삭제한다.
         List<BoardImage> deleteImages = boardImages.stream().filter(
                 boardImage -> !newIdSet.contains(boardImage.getImageId())
         ).toList();
 
-        boardImageRepository.deleteAllInBatch(deleteImages);
+        if (!deleteImages.isEmpty()) {
+            boardImageRepository.deleteAllInBatch(deleteImages);
+        }
 
         // 새로운 이미지 ID와 기존 이미지 ID를 비교하여, 추가할 이미지를 찾아서 추가한다.
         HashSet<Long> diffSet = new HashSet<>(newIdSet);
@@ -236,25 +282,7 @@ public class BoardService {
             boardImageRepository.saveAll(dummyImages);
         }
 
-        if (request.getThumbnail() != null) {
-            FileDto file = fileStore.storeFile("board/", request.getThumbnail());
-            board.setThumbnailPath(file.getStorePath());
-            board.setThumbnailSize(file.getSize());
-            board.setThumbnailType(file.getExtension());
-        } else {
-            board.setThumbnailPath(null);
-            board.setThumbnailSize(null);
-            board.setThumbnailType(null);
-        }
-
-        board.setTitle(request.getTitle());
-        board.setContent(request.getContent());
-        boardRepository.save(board);
-
-        // TODO: Kafka 또는 무언가를 사용하여 Topic을 발생시키고, 삭제할 이미지를 모아서 삭제하도록 요청
-        if (oldBoardThumbnailPath != null) {
-            fileStore.deleteFile(oldBoardThumbnailPath);
-        }
+        // TODO: Kafka 또는 무언가를 사용하여 Topic을 발생시키고, 삭제할 이미지를 모아서 삭제하도록 요청 (fileStore.deleteFile())
         deleteImages.forEach(boardImage -> fileStore.deleteFile(boardImage.getImagePath()));
     }
 }
