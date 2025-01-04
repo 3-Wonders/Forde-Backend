@@ -1,6 +1,7 @@
 package com.project.forde.mapper;
 
 import com.project.forde.dto.ResponseOtherUserDto;
+import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.entity.AppUser;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -9,6 +10,13 @@ import org.mapstruct.factory.Mappers;
 @Mapper(uses = CustomTimestampTranslator.class)
 public interface AppUserMapper {
     AppUserMapper INSTANCE = Mappers.getMapper(AppUserMapper.class);
+
+    @Mapping(source = "request.email", target = "email")
+    @Mapping(source = "request.password", target = "userPw")
+    @Mapping(source = "request.nickname", target = "nickname")
+    @Mapping(source = "request.isEnableNotification", target = "noticeNotification")
+    @Mapping(source = "request.isEnableEvent", target = "eventNotification")
+    AppUser toEntity(AppUserDto.Request request);
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
