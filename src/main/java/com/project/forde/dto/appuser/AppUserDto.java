@@ -1,5 +1,7 @@
 package com.project.forde.dto.appuser;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,16 +12,17 @@ public class AppUserDto {
 
     @Getter
     public static class Request {
-        @NotNull(message = "이메일을 입력해주세요.")
+        @NotBlank(message = "이메일을 작성해주세요.")
         @Size(max = 60, message = "이메일은 60자 이하여야 합니다.")
         private String email;
 
-        @NotNull(message = "비밀번호를 입력해주세요.")
-        @Size(max = 300, message = "비밀번호는 300자 이하여야 합니다.")
+        @NotBlank(message = "비밀번호를 작성해주세요.")
+        @Size(min = 8, max = 20, message = "비밀번호는 8 ~ 20자 이내로 입력해야 합니다.")
+        @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$", message = "영문자, 숫자, 특수문자를 1개씩 포함해야 합니다.")
         private String password;
 
-        @NotNull(message = "닉네임을 입력해주세요.")
-        @Size(max = 300, message = "닉네임은 10자 이하여야 합니다.")
+        @NotBlank(message = "닉네임을 입력해주세요.")
+        @Size(max = 10, message = "닉네임은 10자 이하여야 합니다.")
         private String nickname;
 
         @NotNull(message = "일반 알림 여부를 체크해주세요.")

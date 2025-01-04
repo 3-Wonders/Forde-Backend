@@ -31,14 +31,6 @@ public class AppUserController {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getOtherUser(userId));
     }
 
-    @PostMapping(value = "/login")
-    public ResponseEntity<?> publicLogin(@Valid @RequestBody RequestLoginDto dto) {
-        // NOTE: Validation 에러 사용법을 보여주기 위해 미리 작성된 API입니다.
-        // TODO: 1. 회원가입을 먼저 처리하세요.
-        // TODO: 1. 로그인 로직을 작성하세요.
-        return ResponseEntity.noContent().build();
-    }
-
     @PatchMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateProfileImg(@Valid @ModelAttribute RequestUpdateProfileDto dto) {
         // NOTE: Validation 에러 사용법을 보여주기 위해 미리 작성된 API입니다.
@@ -50,6 +42,16 @@ public class AppUserController {
     @PostMapping(value = "")
     public ResponseEntity<?> create(@Valid @RequestBody AppUserDto.Request dto) {
         appUserService.createAppUser(dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value="/login")
+    public ResponseEntity<?> publicLogin(@Valid @RequestBody RequestLoginDto dto, final HttpServletRequest request) {
+        Long userId = appUserService.login(dto);
+        final HttpSession session = request.getSession();
+
+        session.setAttribute("userId", userId);
+
         return ResponseEntity.noContent().build();
     }
 
