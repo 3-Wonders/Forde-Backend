@@ -18,7 +18,7 @@ import java.util.List;
 public class BoardDto {
     @Getter
     public static class Request {
-        @EnumValue(enumClass = BoardTypeEnum.class, message = "게시판 유형은 뉴스 또는 게시판이어야 합니다.", ignoreCase = true)
+        @EnumValue(enumClass = BoardTypeEnum.class, message = "게시판 유형은 뉴스, 게시판, 질문이어야 합니다.", ignoreCase = true)
         private final String boardType;
 
         @NotBlank(message = "제목을 입력해주세요.")

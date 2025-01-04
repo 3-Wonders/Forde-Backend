@@ -37,6 +37,11 @@ public class BoardService {
     private final BoardTagRepository boardTagRepository;
     private final BoardImageRepository boardImageRepository;
 
+    private final TagService tagService;
+    private final BoardTagService boardTagService;
+    private final FileService fileService;
+    private final BoardImageService boardImageService;
+
     private final FileStore fileStore;
 
     private BoardDto.Response.Boards createBoardsDto(Page<Board> boards) {
@@ -112,51 +117,21 @@ public class BoardService {
         Board board = BoardMapper.INSTANCE.toEntity(user, request, null);
         Board createdBoard = boardRepository.save(board);
 
-        List<Tag> tags = tagRepository.findAllByTagIdIn(request.getTagIds());
-        if (tags.size() != request.getTagIds().size() || tags.isEmpty() || tags.size() > 3) {
-            throw new CustomException(ErrorCode.BAD_REQUEST_TAG);
-        }
-        tags.forEach(tag -> tag.setTagCount(tag.getTagCount() + 1));
+        List<Tag> tags = tagService.increaseTagCount(request.getTagIds());
+        List<BoardTag> boardTags = boardTagService.createBoardTag(createdBoard, tags);
 
-        List<BoardTag> boardTags = tags.stream().map(tag ->
-            BoardTagMapper.INSTANCE.toEntity(new BoardTagPK(createdBoard, tag))
-        ).toList();
-        if (boardTags.isEmpty()) {
-            throw new CustomException(ErrorCode.BAD_REQUEST_TAG);
-        }
-
+        tagRepository.saveAll(tags);
         boardTagRepository.saveAll(boardTags);
 
-        if (request.getImageIds() != null) {
-            List<BoardImage> dummyImages = boardImageRepository.findAllByImageIdInAndBoardIsNull(request.getImageIds());
+        List<BoardImage> dummyImages = boardImageService.createImages(createdBoard, request.getImageIds());
+        boardImageRepository.saveAll(dummyImages);
 
-            if (dummyImages.size() != request.getImageIds().size()) {
-                throw new CustomException(ErrorCode.BAD_REQUEST_IMAGE);
-            }
-
-            for (BoardImage image : dummyImages) {
-                image.setBoard(createdBoard);
-            }
-
-            boardImageRepository.saveAll(dummyImages);
-        }
-
-        FileDto file = null;
-
-        try {
-            if (request.getThumbnail() != null) {
-                file = fileStore.storeFile(ImagePathEnum.BOARD.getPath(), request.getThumbnail());
-                createdBoard.setThumbnailPath(file.getStorePath());
-                createdBoard.setThumbnailSize(file.getSize());
-                createdBoard.setThumbnailType(file.getExtension());
-            }
-
-            boardRepository.save(createdBoard);
-        } catch (Exception e) {
-            if (file != null) {
-                throw new FileUploadException(file.getStorePath());
-            }
-        }
+        fileService.processThumbnailAndSave(
+                request.getThumbnail(),
+                ImagePathEnum.BOARD.getPath(),
+                createdBoard,
+                boardRepository::save
+        );
 
         return createdBoard.getBoardId();
     }

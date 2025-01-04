@@ -1,7 +1,9 @@
 package com.project.forde.entity;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
@@ -14,6 +16,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "draft")
+@NoArgsConstructor
 @DynamicInsert
 public class Draft {
     @Id
@@ -52,4 +55,15 @@ public class Draft {
     @CreationTimestamp
     @Column(name = "updated_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime updatedTime;
+
+    @Builder
+    public Draft(AppUser uploader, String thumbnailPath, String thumbnailType, Long thumbnailSize, Character category, String title, String content) {
+        this.uploader = uploader;
+        this.thumbnailPath = thumbnailPath;
+        this.thumbnailType = thumbnailType;
+        this.thumbnailSize = thumbnailSize;
+        this.category = category;
+        this.title = title;
+        this.content = content;
+    }
 }

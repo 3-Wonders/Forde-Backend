@@ -28,6 +28,11 @@ public class BoardImage {
     @JoinColumn(name = "board_id", columnDefinition = "INT UNSIGNED")
     private Board board;
 
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "draft_id", columnDefinition = "INT UNSIGNED")
+    private Draft draft;
+
     @Column(name = "image_size", nullable = false, columnDefinition = "INT UNSIGNED")
     private Long imageSize;
 
