@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
 public interface SnsRepository extends JpaRepository<Sns, Long> {
-    Optional<Sns> findBySnsId(Long userId);
+    Sns findBySnsId(Long userId);
 }
