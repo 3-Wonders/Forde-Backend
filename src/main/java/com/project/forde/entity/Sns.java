@@ -2,20 +2,23 @@ package com.project.forde.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicUpdate;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @Entity
 @Table(name = "sns")
+@DynamicUpdate
 public class Sns {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "sns_id", unique = true, nullable = false, columnDefinition = "INT UNSIGNED AUTO_INCREMENT")
-    private Long snsId; // snsID
+    @Column(name = "sns_id", unique = true, nullable = false)
+    private String snsId; // snsID
 
     @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne(fetch = FetchType.LAZY)
