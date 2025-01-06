@@ -6,10 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -21,6 +18,12 @@ public class DraftController {
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createDraft(@Valid final DraftDto.Request request) {
         draftService.create(1L, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping(value = "/{draftId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateDraft(@PathVariable final Long draftId, @Valid final DraftDto.Request request) {
+        draftService.update(1L, draftId, request);
         return ResponseEntity.noContent().build();
     }
 }

@@ -6,6 +6,8 @@ import com.project.forde.entity.Draft;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.exception.FileUploadException;
+import com.project.forde.type.ImageActionEnum;
+import com.project.forde.type.ImagePathEnum;
 import com.project.forde.util.FileStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

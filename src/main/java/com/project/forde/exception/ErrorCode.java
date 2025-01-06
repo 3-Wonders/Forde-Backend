@@ -33,6 +33,7 @@ public enum ErrorCode {
     NOT_FOUND_BOARD(HttpStatus.NOT_FOUND, "게시글이 존재하지 않습니다.", "N40403"),
     NOT_FOUND_COMMENT(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다.", "N40404"),
     NOT_FOUND_SNS_ID(HttpStatus.NOT_FOUND, "SNS ID가 존재하지 않습니다.", "N40405"),
+    NOT_FOUND_DRAFT(HttpStatus.NOT_FOUND, "임시 저장이 존재하지 않습니다.", "N40406"),
 
     DUPLICATED_NICKNAME(HttpStatus.CONFLICT, "닉네임 중복입니다.", "C40901"),
     DUPLICATED_EMAIL(HttpStatus.CONFLICT, "이메일 중복입니다.", "C40902"),

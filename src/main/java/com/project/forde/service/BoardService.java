@@ -1,16 +1,15 @@
 package com.project.forde.service;
 
-import com.project.forde.dto.FileDto;
 import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
 import com.project.forde.entity.composite.BoardTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
-import com.project.forde.exception.FileUploadException;
 import com.project.forde.mapper.*;
 import com.project.forde.repository.*;
 
+import com.project.forde.type.ImageActionEnum;
 import com.project.forde.type.ImagePathEnum;
 import com.project.forde.type.SortBoardTypeEnum;
 import com.project.forde.util.FileStore;
@@ -118,13 +117,8 @@ public class BoardService {
         Board createdBoard = boardRepository.save(board);
 
         List<Tag> tags = tagService.increaseTagCount(request.getTagIds());
-        List<BoardTag> boardTags = boardTagService.createBoardTag(createdBoard, tags);
-
-        tagRepository.saveAll(tags);
-        boardTagRepository.saveAll(boardTags);
-
-        List<BoardImage> dummyImages = boardImageService.createImages(createdBoard, request.getImageIds());
-        boardImageRepository.saveAll(dummyImages);
+        boardTagService.createBoardTag(createdBoard, tags);
+        boardImageService.createImages(createdBoard, request.getImageIds());
 
         fileService.processThumbnailAndSave(
                 request.getThumbnail(),
@@ -147,42 +141,43 @@ public class BoardService {
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
-        String oldBoardThumbnailPath = board.getThumbnailPath();
+        String oldThumbnailPath = board.getThumbnailPath();
 
         if (!board.getUploader().getUserId().equals(userId)) {
             throw new CustomException(ErrorCode.NOT_MATCHED_BOARD_UPLOADER);
         }
 
         updateTags(board, request.getTagIds());
-        updateImages(board, request.getImageIds());
+        boardImageService.updateDiffImages(board, request.getImageIds());
 
-        FileDto file = null;
+        board.setTitle(request.getTitle());
+        board.setContent(request.getContent());
+        boardRepository.save(board);
 
-        try {
-            if (request.getThumbnail() != null) {
-                file = fileStore.storeFile(ImagePathEnum.BOARD.getPath(), request.getThumbnail());
-                board.setThumbnailPath(file.getStorePath());
-                board.setThumbnailSize(file.getSize());
-                board.setThumbnailType(file.getExtension());
-            } else {
-                board.setThumbnailPath(null);
-                board.setThumbnailSize(null);
-                board.setThumbnailType(null);
+        if (request.getThumbnailAction().equals(ImageActionEnum.UPLOAD.getType())) {
+            fileService.processThumbnailAndSave(
+                    request.getThumbnail(),
+                    ImagePathEnum.BOARD.getPath(),
+                    board,
+                    boardRepository::save
+            );
+
+            // TODO: Kafka 또는 무언가를 사용하여 Topic을 발생시키고, 삭제할 이미지를 모아서 삭제
+            if (oldThumbnailPath != null) {
+                fileStore.deleteFile(oldThumbnailPath);
             }
+        } else if (request.getThumbnailAction().equals(ImageActionEnum.DELETE.getType())) {
+            board.setThumbnailPath(null);
+            board.setThumbnailSize(null);
+            board.setThumbnailType(null);
 
-            board.setTitle(request.getTitle());
-            board.setContent(request.getContent());
-            boardRepository.save(board);
-        } catch (Exception e) {
-            if (file != null) {
-                throw new FileUploadException(file.getStorePath());
+            // TODO: Kafka 또는 무언가를 사용하여 Topic을 발생시키고, 삭제할 이미지를 모아서 삭제
+            if (oldThumbnailPath != null) {
+                fileStore.deleteFile(oldThumbnailPath);
             }
         }
 
-        // TODO: Kafka 또는 무언가를 사용하여 Topic을 발생시키고, 삭제할 이미지를 모아서 삭제하도록 요청 (fileStore.deleteFile())
-        if (oldBoardThumbnailPath != null) {
-            fileStore.deleteFile(oldBoardThumbnailPath);
-        }
+        boardRepository.save(board);
     }
 
     private void updateTags(final Board board, final List<Long> newTagIds) {
@@ -228,42 +223,6 @@ public class BoardService {
 
         boardTagRepository.deleteAllInBatch(deleteBoardTags);
         boardTagRepository.saveAll(addBoardTags);
-    }
-
-    private void updateImages(final Board board, final List<Long> newImageIds) {
-        List<BoardImage> boardImages = boardImageRepository.findAllByBoard(board);
-        Set<Long> existingIdSet = boardImages.stream().map(BoardImage::getImageId).collect(Collectors.toSet());
-        Set<Long> newIdSet = new HashSet<>(newImageIds);
-
-        // 새로운 이미지 ID와 기존 이미지 ID를 비교하여, 삭제할 이미지를 찾아서 삭제한다.
-        List<BoardImage> deleteImages = boardImages.stream().filter(
-                boardImage -> !newIdSet.contains(boardImage.getImageId())
-        ).toList();
-
-        if (!deleteImages.isEmpty()) {
-            boardImageRepository.deleteAllInBatch(deleteImages);
-        }
-
-        // 새로운 이미지 ID와 기존 이미지 ID를 비교하여, 추가할 이미지를 찾아서 추가한다.
-        HashSet<Long> diffSet = new HashSet<>(newIdSet);
-        diffSet.removeAll(existingIdSet);
-
-        if (!diffSet.isEmpty()) {
-            List<BoardImage> dummyImages = boardImageRepository.findAllByImageIdInAndBoardIsNull(diffSet.stream().toList());
-
-            if (dummyImages.size() != diffSet.size()) {
-                throw new CustomException(ErrorCode.BAD_REQUEST_IMAGE);
-            }
-
-            for (BoardImage image : dummyImages) {
-                image.setBoard(board);
-            }
-
-            boardImageRepository.saveAll(dummyImages);
-        }
-
-        // TODO: Kafka 또는 무언가를 사용하여 Topic을 발생시키고, 삭제할 이미지를 모아서 삭제하도록 요청 (fileStore.deleteFile())
-        deleteImages.forEach(boardImage -> fileStore.deleteFile(boardImage.getImagePath()));
     }
 
     @Transactional

@@ -1,6 +1,7 @@
 package com.project.forde.dto.draft;
 
 import com.project.forde.type.BoardTypeEnum;
+import com.project.forde.type.ImageActionEnum;
 import com.project.forde.validation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -18,6 +19,12 @@ public class DraftDto {
         private final String content;
         private final List<Long> tagIds;
         private final MultipartFile thumbnail;
+        @EnumValue(enumClass = ImageActionEnum.class, message = "UPLOAD, KEEP, DELETE만 선택 가능합니다.", ignoreCase = true)
+        private final String thumbnailAction;
         private final List<Long> imageIds;
+
+        public String getThumbnailAction() {
+            return thumbnailAction.toUpperCase();
+        }
     }
 }

@@ -7,15 +7,27 @@ import com.project.forde.entity.composite.BoardTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.BoardTagMapper;
+import com.project.forde.repository.BoardTagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class BoardTagService {
-    public List<BoardTag> createBoardTag(final Board board, final List<Tag> tags) {
+    private final BoardTagRepository boardTagRepository;
+
+    /**
+     * 게시글에 태그를 추가하는 메서드
+     *
+     * @param board 게시글
+     * @param tags  태그 리스트
+     */
+    @Transactional
+    public void createBoardTag(final Board board, final List<Tag> tags) {
         List<BoardTag> boardTags =  tags.stream().map(tag ->
                 BoardTagMapper.INSTANCE.toEntity(new BoardTagPK(board, tag))
         ).toList();
@@ -24,6 +36,6 @@ public class BoardTagService {
             throw new CustomException(ErrorCode.BAD_REQUEST_TAG);
         }
 
-        return boardTags;
+        boardTagRepository.saveAll(boardTags);
     }
 }

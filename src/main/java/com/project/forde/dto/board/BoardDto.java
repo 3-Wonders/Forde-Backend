@@ -3,6 +3,7 @@ package com.project.forde.dto.board;
 import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.type.BoardTypeEnum;
+import com.project.forde.type.ImageActionEnum;
 import com.project.forde.validation.EnumValue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -18,7 +19,7 @@ import java.util.List;
 public class BoardDto {
     @Getter
     public static class Request {
-        @EnumValue(enumClass = BoardTypeEnum.class, message = "게시판 유형은 뉴스, 게시판, 질문이어야 합니다.", ignoreCase = true)
+        @EnumValue(enumClass = BoardTypeEnum.class, message = "게시판 유형은 뉴스, 게시판, 질문이어야 합니다.", ignoreCase = false)
         private final String boardType;
 
         @NotBlank(message = "제목을 입력해주세요.")
@@ -33,17 +34,24 @@ public class BoardDto {
         private final List<Long> tagIds;
 
         private final MultipartFile thumbnail;
+        @EnumValue(enumClass = ImageActionEnum.class, message = "UPLOAD, KEEP, DELETE만 선택 가능합니다.", ignoreCase = true)
+        private final String thumbnailAction;
         private final List<Long> imageIds;
 
         // Test Code And Formdata에서 Dto를 자동 매핑하지 못해서 다음과 같은 코드로 변경
-        @ConstructorProperties({"boardType", "title", "content", "tagIds", "thumbnail", "imageIds"})
-        public Request(String boardType, String title, String content, List<Long> tagIds, MultipartFile thumbnail, List<Long> imageIds) {
+        @ConstructorProperties({"boardType", "title", "content", "tagIds", "thumbnail", "thumbnailAction", "imageIds"})
+        public Request(String boardType, String title, String content, List<Long> tagIds, MultipartFile thumbnail, String thumbnailAction, List<Long> imageIds) {
             this.boardType = boardType;
             this.title = title;
             this.content = content;
             this.tagIds = tagIds;
             this.thumbnail = thumbnail;
+            this.thumbnailAction = thumbnailAction;
             this.imageIds = imageIds;
+        }
+
+        public String getThumbnailAction() {
+            return thumbnailAction.toUpperCase();
         }
     }
 
