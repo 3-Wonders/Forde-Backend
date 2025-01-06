@@ -8,10 +8,13 @@ import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.AppUserMapper;
 import com.project.forde.repository.AppUserRepository;
+import com.project.forde.util.PasswordUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 
 @Service
@@ -19,7 +22,6 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class AppUserService {
     private final AppUserRepository appUserRepository;
-    private final PasswordEncoder passwordEncoder;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
         AppUser user = appUserRepository.findById(userId)
@@ -29,20 +31,15 @@ public class AppUserService {
     }
 
     public void createAppUser(AppUserDto.Request request) {
-        AppUser appuser = appUserRepository.findByEmail(request.getEmail());
+        Optional<AppUser> appUser = appUserRepository.findByEmail(request.getEmail());
 
-        if (appuser != null) {
+        if (appUser.isPresent()) { // 유저가 있을 때
             throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
         }
 
-        if (appUserRepository.findByNickname(request.getNickname()) != null) {
-            throw new CustomException(ErrorCode.DUPLICATED_NICKNAME);
-        }
+        AppUser newUser = AppUserMapper.INSTANCE.toEntity(request);
 
-        AppUser newUser = null;
-        newUser = AppUserMapper.INSTANCE.toEntity(request);
-
-        newUser.setUserPw(passwordEncoder.encode(request.getPassword()));
+        newUser.setUserPw(PasswordUtils.encodePassword(request.getPassword()));
 
         if(request.getIsEnableNotification()) {
             newUser.setRecommendNotification(true);
@@ -60,22 +57,27 @@ public class AppUserService {
     }
 
     public Long login(RequestLoginDto dto) {
-        AppUser user = appUserRepository.findByEmail(dto.getEmail());
+        AppUser user = appUserRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
-        System.out.println(user);
-        if(user == null) {
+        if(!PasswordUtils.checkPassword(dto.getPassword(), user.getUserPw())) {
             throw new CustomException(ErrorCode.NOT_MATCHED_LOGIN_INFO);
         }
 
-        if(!passwordEncoder.matches(dto.getPassword(), user.getUserPw())) {
-            throw new CustomException(ErrorCode.NOT_MATCHED_LOGIN_INFO);
-        }
-
-        if(!user.getVerified()) {
+        if(user.getEmail() == null) {
             throw new CustomException(ErrorCode.NOT_VERIFIED_USER);
         }
 
         return user.getUserId();
+    }
+
+    public AppUser createSnsUser(String email, String nickname, String profilePath) {
+        AppUser newAppUser = new AppUser();
+        newAppUser.setEmail(email);
+        newAppUser.setNickname(nickname);
+        newAppUser.setProfilePath(profilePath);
+        appUserRepository.save(newAppUser);
+        return newAppUser;
     }
 
 }

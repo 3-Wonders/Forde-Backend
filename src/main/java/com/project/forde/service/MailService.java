@@ -27,11 +27,8 @@ public class MailService {
     private final AppUserRepository appUserRepository;
 
     public void sendEmail(RequestMailDto request) {
-        AppUser appUser = appUserRepository.findByEmail(request.getEmail());
-
-        if (appUser == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND_VERIFIED_EMAIL);
-        }
+        appUserRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         String code = RandomStringUtils.random(6, 33, 125, true, true);
 
@@ -45,11 +42,8 @@ public class MailService {
     }
 
     public long compareEmail(RequestMailCompareDto request) {
-        AppUser appUser = appUserRepository.findByEmail(request.getEmail());
-
-        if (appUser == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND_USER);
-        }
+        AppUser user = appUserRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         String storedCode = redisTemplate.opsForValue().get("email:verification:" + request.getEmail());
 
@@ -63,9 +57,9 @@ public class MailService {
 
         redisTemplate.delete("email:verification:" + request.getEmail());
 
-        appUser.setVerified(true);
-        appUserRepository.save(appUser);
+        user.setVerified(true);
+        appUserRepository.save(user);
 
-        return appUser.getUserId();
+        return user.getUserId();
     }
 }

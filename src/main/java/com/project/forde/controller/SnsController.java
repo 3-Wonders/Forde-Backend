@@ -1,6 +1,7 @@
 package com.project.forde.controller;
 
 import com.project.forde.service.SnsService;
+import org.springframework.beans.factory.annotation.Value;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,12 +16,23 @@ import org.springframework.web.bind.annotation.*;
 @ResponseBody
 public class SnsController {
     private final SnsService snsService;
+    @Value("${spring.security.oauth2.client.registration.kakao.client-id}")
+    private String clientId;
+    @Value("${spring.security.oauth2.client.registration.kakao.redirect-uri}")
+    private String redirectUri;
 
-    @GetMapping("/google")
-    public ResponseEntity<?> handleGoogleAuth() {
-        // 구글 로그인 페이지로 리다이렉트
+//    @GetMapping("/google")
+//    public ResponseEntity<?> handleGoogleAuth() {
+//        // 구글 로그인 페이지로 리다이렉트
+//        return ResponseEntity.status(HttpStatus.FOUND)
+//                .header("Location", "/oauth2/authorization/google")
+//                .build();
+//    }
+//
+    @GetMapping("/kakao")
+    public ResponseEntity<?> handleKaKaoAuth() {
         return ResponseEntity.status(HttpStatus.FOUND)
-                .header("Location", "/oauth2/authorization/google")
+                .header("Location", "/oauth2/authorization/kakao")
                 .build();
     }
 }

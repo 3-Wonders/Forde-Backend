@@ -1,5 +1,9 @@
 package com.project.forde.config;
 
+import com.project.forde.entity.Sns;
+import com.project.forde.exception.CustomException;
+import com.project.forde.exception.ErrorCode;
+import com.project.forde.repository.SnsRepository;
 import com.project.forde.service.SnsService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.context.annotation.Bean;
@@ -24,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 public class WebSecurityConfig {
     private final SnsService snsService;
 
-    public WebSecurityConfig(SnsService snsService) {
+    public WebSecurityConfig(SnsService snsService, SnsRepository snsRepository) {
         this.snsService = snsService;
     }
 
@@ -53,17 +57,22 @@ public class WebSecurityConfig {
     public AuthenticationSuccessHandler oAuth2LoginSuccessHandler() {
         return (request, response, authentication) -> {
             try {
+                System.out.println("핸들러 발동!");
                 OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
                 String socialType = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
 
-                snsService.auth(oAuth2User, socialType);
+                Long checkAuth = snsService.socialAuth(oAuth2User, socialType);
+
+                if(checkAuth != null) {
+                    request.getSession().setAttribute("userId", checkAuth);
+                }
 
                 String redirectUrl = "http://localhost:5173/callback?success=true";
-
-                request.getSession().setAttribute("userId", oAuth2User.getAttribute("sub"));
                 response.sendRedirect(redirectUrl);
 
-            } catch (Exception e) {
+            }
+            catch (Exception e) {
+                System.out.println("예외 발생 : " + e.getMessage());
                 request.getSession().invalidate();
                 String encodedMessage = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
                 String errorRedirectUrl = "http://localhost:5173/callback?success=false&message=" + encodedMessage;
@@ -75,6 +84,7 @@ public class WebSecurityConfig {
     // OAuth2 로그인 실패 후 처리
     public AuthenticationFailureHandler oAuth2LoginFailureHandler() {
         return (request, response, exception) -> {
+            System.out.println("문제 발생 : " + exception.getMessage());
             request.getSession().invalidate();
             String encodedMessage = URLEncoder.encode("나중에 다시 시도해주세요.", StandardCharsets.UTF_8);
             String redirectUrl = "http://localhost:5173/callback?success=false&message=" + encodedMessage;
