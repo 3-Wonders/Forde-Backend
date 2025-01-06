@@ -8,6 +8,8 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.URI;
+
 @RestController
 @RequiredArgsConstructor
 @ResponseBody
@@ -18,12 +20,18 @@ public class DraftController {
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createDraft(@Valid final DraftDto.Request request) {
         draftService.create(1L, request);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.created(URI.create("/draft")).build();
     }
 
     @PatchMapping(value = "/{draftId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateDraft(@PathVariable final Long draftId, @Valid final DraftDto.Request request) {
         draftService.update(1L, draftId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping(value = "/{draftId}")
+    public ResponseEntity<?> deleteDraft(@PathVariable final Long draftId) {
+        draftService.delete(1L, draftId);
         return ResponseEntity.noContent().build();
     }
 }

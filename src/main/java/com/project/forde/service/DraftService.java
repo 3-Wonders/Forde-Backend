@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -19,7 +20,9 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class DraftService {
     private final DraftRepository draftRepository;
+    private final DraftTagRepository draftTagRepository;
     private final AppUserRepository appUserRepository;
+    private final BoardImageRepository boardImageRepository;
 
     private final TagService tagService;
     private final DraftTagService draftTagService;
@@ -109,5 +112,37 @@ public class DraftService {
         }
 
         draftRepository.save(draft);
+    }
+
+    @Transactional
+    public void delete(final Long userId, final Long draftId) {
+        AppUser user = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        if (user.getDeleted()) {
+            throw new CustomException(ErrorCode.DELETED_USER);
+        }
+
+        Draft draft = draftRepository.findById(draftId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_DRAFT));
+
+        if (!draft.getUploader().equals(user)) {
+            throw new CustomException(ErrorCode.NOT_MATCHED_DRAFT);
+        }
+
+        List<DraftTag> draftTags = draftTagRepository.findAllByDraftTagPK_Draft(draft);
+        draftTagRepository.deleteAllInBatch(draftTags);
+        draftRepository.delete(draft);
+
+        List<BoardImage> boardImages = boardImageRepository.findAllByDraft(draft);
+        List<String> imagePaths = new ArrayList<>(boardImages.stream().map(BoardImage::getImagePath).toList());
+        boardImageRepository.deleteAll(boardImages);
+
+        if (draft.getThumbnailPath() != null) {
+            fileStore.deleteFile(draft.getThumbnailPath());
+        }
+
+        imagePaths.forEach(fileStore::deleteFile);
+
     }
 }
