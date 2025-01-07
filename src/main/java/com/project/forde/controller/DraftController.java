@@ -23,13 +23,13 @@ public class DraftController {
     }
 
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createDraft(@Valid final DraftDto.Request request) {
+    public ResponseEntity<?> createDraft(@Valid final DraftDto.Request.Create request) {
         draftService.create(1L, request);
         return ResponseEntity.created(URI.create("/draft")).build();
     }
 
     @PatchMapping(value = "/{draftId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateDraft(@PathVariable final Long draftId, @Valid final DraftDto.Request request) {
+    public ResponseEntity<?> updateDraft(@PathVariable final Long draftId, @Valid final DraftDto.Request.Update request) {
         draftService.update(1L, draftId, request);
         return ResponseEntity.noContent().build();
     }

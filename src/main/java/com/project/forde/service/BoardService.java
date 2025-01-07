@@ -12,6 +12,7 @@ import com.project.forde.repository.*;
 import com.project.forde.type.ImageActionEnum;
 import com.project.forde.type.ImagePathEnum;
 import com.project.forde.type.SortBoardTypeEnum;
+import com.project.forde.util.CustomTimestamp;
 import com.project.forde.util.FileStore;
 import lombok.RequiredArgsConstructor;
 
@@ -105,7 +106,7 @@ public class BoardService {
     }
 
     @Transactional
-    public Long create(final Long userId, final BoardDto.Request request) {
+    public Long create(final Long userId, final BoardDto.Request.Create request) {
         AppUser user = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
@@ -131,7 +132,7 @@ public class BoardService {
     }
 
     @Transactional
-    public void update(final Long userId, final Long boardId, final BoardDto.Request request) {
+    public void update(final Long userId, final Long boardId, final BoardDto.Request.Update request) {
         AppUser user = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
@@ -152,6 +153,7 @@ public class BoardService {
 
         board.setTitle(request.getTitle());
         board.setContent(request.getContent());
+        board.setUpdatedTime(new CustomTimestamp().getTimestamp());
         boardRepository.save(board);
 
         if (request.getThumbnailAction().equals(ImageActionEnum.UPLOAD.getType())) {

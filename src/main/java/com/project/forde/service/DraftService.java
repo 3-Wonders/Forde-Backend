@@ -9,6 +9,7 @@ import com.project.forde.mapper.DraftMapper;
 import com.project.forde.repository.*;
 import com.project.forde.type.ImageActionEnum;
 import com.project.forde.type.ImagePathEnum;
+import com.project.forde.util.CustomTimestamp;
 import com.project.forde.util.FileStore;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -64,7 +65,7 @@ public class DraftService {
     }
 
     @Transactional
-    public void create(final Long userId, final DraftDto.Request request) {
+    public void create(final Long userId, final DraftDto.Request.Create request) {
         AppUser user = appUserRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
@@ -86,7 +87,9 @@ public class DraftService {
         Draft createdDraft = draftRepository.save(draft);
 
         List<Tag> tags = tagService.getTags(request.getTagIds());
-        draftTagService.createDraftTag(createdDraft, tags);
+        if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
+            draftTagService.createDraftTag(createdDraft, tags);
+        }
         boardImageService.createImages(createdDraft, request.getImageIds());
 
         fileService.processThumbnailAndSave(
@@ -98,7 +101,7 @@ public class DraftService {
     }
 
     @Transactional
-    public void update(final Long userId, final Long draftId, final DraftDto.Request request) {
+    public void update(final Long userId, final Long draftId, final DraftDto.Request.Update request) {
         AppUser user = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
@@ -119,6 +122,7 @@ public class DraftService {
 
         draft.setTitle(request.getTitle());
         draft.setContent(request.getContent());
+        draft.setUpdatedTime(new CustomTimestamp().getTimestamp());
 
         if (request.getThumbnailAction().equals(ImageActionEnum.UPLOAD.getType())) {
             fileService.processThumbnailAndSave(

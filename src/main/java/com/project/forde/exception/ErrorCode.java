@@ -15,6 +15,7 @@ public enum ErrorCode {
     TOO_MANY_DRAFT(HttpStatus.BAD_REQUEST, "임시 저장은 인당 최대 10개입니다.", "B40006"),
     BAD_REQUEST_TAG(HttpStatus.BAD_REQUEST, "요청하신 Tag ID가 잘못되었습니다.", "B40007"),
     BAD_REQUEST_IMAGE(HttpStatus.BAD_REQUEST, "요청하신 Image ID가 잘못되었습니다.", "B40008"),
+    INVALID_MENTION(HttpStatus.BAD_REQUEST, "내용 안에 멘션의 정보가 존재하지 않습니다.", "B40009"),
 
     NOT_MATCHED_LOGIN_INFO(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다.", "U40101"),
     EXPIRED_COOKIE(HttpStatus.UNAUTHORIZED, "만료된 쿠키입니다.", "U40102"),

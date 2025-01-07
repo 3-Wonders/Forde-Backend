@@ -1,7 +1,5 @@
 package com.project.forde.mapper;
 
-import com.project.forde.entity.AppUser;
-import com.project.forde.entity.Board;
 import com.project.forde.entity.BoardLike;
 import com.project.forde.entity.composite.BoardLikePK;
 import org.mapstruct.Mapper;

@@ -77,6 +77,10 @@ public class BoardImageService {
      * @param <T> Board 또는 Draft
      */
     public<T> void updateDiffImages(T entity, List<Long> newImageIds) {
+        if (newImageIds == null || newImageIds.isEmpty()) {
+            return;
+        }
+
         List<BoardImage> boardImages = null;
 
         if (entity instanceof Board board) {

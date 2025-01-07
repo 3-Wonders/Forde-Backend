@@ -59,9 +59,8 @@ public class Board {
     @Column(name = "created_time", nullable = false, columnDefinition = "CURRENT_TIMESTAMP")
     private LocalDateTime createdTime; //생성된 시간
 
-    @CreationTimestamp
-    @Column(name = "updated_time", nullable = false, columnDefinition = "CURRENT_TIMESTAMP")
-    private LocalDateTime updatedTime; //업데이트 시간
+    @Column(name = "updated_time")
+    private LocalDateTime updatedTime;
 
     @Formula(value = "(SELECT " +
                             "CASE WHEN EXISTS " +

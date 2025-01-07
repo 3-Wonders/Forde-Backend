@@ -50,8 +50,7 @@ public class Draft {
     @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdTime;
 
-    @CreationTimestamp
-    @Column(name = "updated_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "updated_time")
     private LocalDateTime updatedTime;
 
     @Builder

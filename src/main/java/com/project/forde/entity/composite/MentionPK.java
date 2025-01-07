@@ -1,6 +1,7 @@
 package com.project.forde.entity.composite;
 
 import com.project.forde.entity.AppUser;
+import com.project.forde.entity.Comment;
 import com.project.forde.entity.Tag;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.FetchType;
@@ -22,12 +23,12 @@ import java.io.Serializable;
 @Embeddable
 public class MentionPK implements Serializable {
     @OnDelete(action = OnDeleteAction.CASCADE)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "tag_id", nullable = false, columnDefinition = "INT UNSIGNED")
-    private Tag tag;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "comment_id", nullable = false, columnDefinition = "INT UNSIGNED")
+    private Comment comment;
 
     @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id",nullable = false, columnDefinition = "INT UNSIGNED")
-    private AppUser appUser;
+    private AppUser user;
 }
