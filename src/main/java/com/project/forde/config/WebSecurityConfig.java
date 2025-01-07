@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 public class WebSecurityConfig {
     private final SnsService snsService;
 
-    public WebSecurityConfig(SnsService snsService, SnsRepository snsRepository) {
+    public WebSecurityConfig(SnsService snsService) {
         this.snsService = snsService;
     }
 
@@ -57,7 +57,6 @@ public class WebSecurityConfig {
     public AuthenticationSuccessHandler oAuth2LoginSuccessHandler() {
         return (request, response, authentication) -> {
             try {
-                System.out.println("핸들러 발동!");
                 OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
                 String socialType = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
 
@@ -84,7 +83,7 @@ public class WebSecurityConfig {
     // OAuth2 로그인 실패 후 처리
     public AuthenticationFailureHandler oAuth2LoginFailureHandler() {
         return (request, response, exception) -> {
-            System.out.println("문제 발생 : " + exception.getMessage());
+            System.out.println("로그인 실패 발생 : " + exception.getMessage());
             request.getSession().invalidate();
             String encodedMessage = URLEncoder.encode("나중에 다시 시도해주세요.", StandardCharsets.UTF_8);
             String redirectUrl = "http://localhost:5173/callback?success=false&message=" + encodedMessage;

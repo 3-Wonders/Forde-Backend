@@ -64,17 +64,17 @@ public class AppUserService {
             throw new CustomException(ErrorCode.NOT_MATCHED_LOGIN_INFO);
         }
 
-        if(user.getEmail() == null) {
+        if(!user.getVerified()) {
             throw new CustomException(ErrorCode.NOT_VERIFIED_USER);
         }
 
         return user.getUserId();
     }
 
-    public AppUser createSnsUser(String email, String nickname, String profilePath, String snsKind) {
+    public AppUser createSnsUser(String email, String nickname, String profilePath) {
         AppUser newAppUser = new AppUser();
         newAppUser.setEmail(email);
-        if(!snsKind.equals("1001")) newAppUser.setVerified(true);
+        if(email != null) newAppUser.setVerified(true);
         newAppUser.setNickname(nickname);
         newAppUser.setProfilePath(profilePath);
         appUserRepository.save(newAppUser);

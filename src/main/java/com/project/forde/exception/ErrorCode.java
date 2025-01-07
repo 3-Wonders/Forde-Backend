@@ -16,6 +16,7 @@ public enum ErrorCode {
     TOO_MANY_DRAFT(HttpStatus.BAD_REQUEST, "임시 저장은 인당 최대 10개입니다.", "B40006"),
     BAD_REQUEST_TAG(HttpStatus.BAD_REQUEST, "요청하신 Tag ID가 잘못되었습니다.", "B40007"),
     BAD_REQUEST_IMAGE(HttpStatus.BAD_REQUEST, "요청하신 Image ID가 잘못되었습니다.", "B40008"),
+    INVALID_SOCIAL_TYPE(HttpStatus.BAD_REQUEST, "지원하지 않는 SNS 형식입니다.", "B40010"),
 
     NOT_MATCHED_LOGIN_INFO(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다.", "U40101"),
     EXPIRED_COOKIE(HttpStatus.UNAUTHORIZED, "만료된 쿠키입니다.", "U40102"),
@@ -46,6 +47,7 @@ public enum ErrorCode {
     ERROR_EMAIL_SENDER(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송 오류가 발생하였습니다.", "I50001"),
     ERROR_FILE_UPLOAD(HttpStatus.INTERNAL_SERVER_ERROR, "파일 업로드 오류가 발생하였습니다.", "I50002"),
     ERROR_REDIS(HttpStatus.INTERNAL_SERVER_ERROR, "Redis 오류가 발생하였습니다.", "I50003");
+
 
     private final HttpStatus status;
     private final String message;

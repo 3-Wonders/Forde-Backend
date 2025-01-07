@@ -6,6 +6,7 @@ import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.SnsRepository;
+import com.project.forde.type.SocialTypeEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.hibernate.validator.internal.util.stereotypes.Lazy;
@@ -25,83 +26,85 @@ public class SnsService extends DefaultOAuth2UserService {
     private final AppUserService appUserService;
 
     public Long socialAuth(OAuth2User oAuth2User, String socialType) {
-        String snsKind = "";
-
-        if(socialType.equalsIgnoreCase("google")) {
-            snsKind = "1003";
-            return googleAuth(oAuth2User, snsKind);
+        String snsKind;
+        Long userId;
+        try {
+            SocialTypeEnum socialTypeEnum = SocialTypeEnum.valueOf(socialType.toUpperCase());
+            snsKind = socialTypeEnum.getSnsKind();
+            userId = snsAuth(oAuth2User, snsKind);
+        } catch (IllegalArgumentException e) {
+            throw new CustomException(ErrorCode.INVALID_SOCIAL_TYPE);
         }
-        else if(socialType.equalsIgnoreCase("kakao")) {
-            snsKind = "1001";
-            return kakaoAuth(oAuth2User, snsKind);
-        }
-        else if(socialType.equalsIgnoreCase("naver")) {
-            snsKind = "1002";
-            return naverAuth(oAuth2User, snsKind);
-        }
-        else {
-            throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
-        }
+        return userId;
     }
 
-    public Long kakaoAuth(OAuth2User oAuth2User, String snsKind) {
-        Long snsId = oAuth2User.getAttribute("id");
-        assert snsId != null;
-        String socialId = snsId.toString();
+    public Long snsAuth(OAuth2User oAuth2User, String snsKind) {
+        String socialId = null;
+        String name = null;
+        String profilePath = null;
+        String email = null;
+        switch (snsKind) {
+            case "1001" : // 카카오
+                Long kakaoSnsId = oAuth2User.getAttribute("id");
+                assert kakaoSnsId != null;
+                socialId = kakaoSnsId.toString();
 
-        Map<String, Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
-        if(kakaoAccount == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND_SNS_ACCOUNT);
+                Map<String, Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
+                if(kakaoAccount == null) {
+                    throw new CustomException(ErrorCode.NOT_FOUND_SNS_ACCOUNT);
+                }
+
+                Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
+                if(profile == null) {
+                    throw new CustomException(ErrorCode.NOT_FOUND_SNS_PROFILE);
+                }
+
+                name = (String) profile.get("nickname");
+                profilePath = (String) profile.get("profile_image_url");
+
+                break;
+            case "1002" : // 네이버
+                Map<String, Object> attributes = oAuth2User.getAttributes();
+                Map<String, Object> naverResponse = (Map<String, Object>) attributes.get("response");
+                if(naverResponse == null) {
+                    throw new CustomException(ErrorCode.NOT_FOUND_SNS_ACCOUNT);
+                }
+
+                socialId = (String) naverResponse.get("id");
+                email = (String) naverResponse.get("email");
+                name = (String) naverResponse.get("nickname");
+                profilePath = (String) naverResponse.get("profile_image");
+
+                break;
+            case "1003" : // 구글
+                socialId = oAuth2User.getAttribute("sub");
+                email = oAuth2User.getAttribute("email");
+                profilePath = oAuth2User.getAttribute("picture");
+                name = oAuth2User.getAttribute("name");
+                break;
+            case "1004" :
+                Integer githubSnsId = oAuth2User.getAttribute("id");
+                assert githubSnsId != null;
+                socialId = githubSnsId.toString();
+                email = oAuth2User.getAttribute("email");
+                profilePath = oAuth2User.getAttribute("avatar_url");
+                name = oAuth2User.getAttribute("name");
+                break;
         }
 
-        Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-        if(profile == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND_SNS_PROFILE);
+        if(socialId == null || socialId.isEmpty()) {
+            throw new CustomException(ErrorCode.NOT_FOUND_SNS_ID);
         }
 
-        String name = (String) profile.get("nickname");
         if(name == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND_SNS_NAME);
-        }
-
-        String profilePath = (String) profile.get("profile_image_url");
-
-        Optional<Sns> sns = snsRepository.findBySnsId(socialId);
-
-        // 회원가입인 경우
-        if (sns.isEmpty()) {
-            create(socialId, null, snsKind, name, profilePath);
-            return null;
-        }
-        // 로그인일 경우
-        else {
-            return sns.get().getAppUser().getUserId();
-        }
-
-    }
-
-    public Long naverAuth(OAuth2User oAuth2User, String snsKind) {
-        Map<String, Object> attributes = oAuth2User.getAttributes();
-        Map<String, Object> naverResponse = (Map<String, Object>) attributes.get("response");
-        if(naverResponse == null) {
-            throw new CustomException(ErrorCode.NOT_FOUND_SNS_ACCOUNT);
-        }
-
-        String socialId = (String) naverResponse.get("id");
-        String email = (String) naverResponse.get("email");
-        String name = (String) naverResponse.get("nickname");
-        String profilePath = (String) naverResponse.get("profile_image");
-
-        if(socialId == null || socialId.isEmpty()) {
-            throw new CustomException(ErrorCode.NOT_FOUND_SNS_ID);
+            name = "anonymous";
         }
 
         Optional<Sns> sns = snsRepository.findBySnsId(socialId);
 
         // 회원가입인 경우
         if (sns.isEmpty()) {
-            create(socialId, email, snsKind, name, profilePath);
-            return null;
+            return create(socialId, email, snsKind, name, profilePath);
         }
         // 로그인일 경우
         else {
@@ -109,32 +112,9 @@ public class SnsService extends DefaultOAuth2UserService {
         }
     }
 
-    public Long googleAuth(OAuth2User oAuth2User, String snsKind) {
-        String socialId = oAuth2User.getAttribute("sub");
-        String email = oAuth2User.getAttribute("email");
-        String profilePath = oAuth2User.getAttribute("picture");
-        String name = oAuth2User.getAttribute("name");
-
-        if(socialId == null || socialId.isEmpty()) {
-            throw new CustomException(ErrorCode.NOT_FOUND_SNS_ID);
-        }
-
-        Optional<Sns> sns = snsRepository.findBySnsId(socialId);
-
-        // 회원가입인 경우
-        if (sns.isEmpty()) {
-            create(socialId, email, snsKind, name, profilePath);
-            return null;
-        }
-        // 로그인일 경우
-        else {
-            return sns.get().getAppUser().getUserId();
-        }
-    }
-
-    public void create(String socialId, String email, String snsKind, String name, String profilePath) {
+    public Long create(String socialId, String email, String snsKind, String name, String profilePath) {
         // AppUser 계정 생성
-        AppUser newAppUser = appUserService.createSnsUser(email, name, profilePath, snsKind);
+        AppUser newAppUser = appUserService.createSnsUser(email, name, profilePath);
 
         // SNS 계정 생성
         Sns newSnsUser = new Sns();
@@ -142,6 +122,8 @@ public class SnsService extends DefaultOAuth2UserService {
         newSnsUser.setSnsKind(snsKind);
         newSnsUser.setAppUser(newAppUser);
         snsRepository.save(newSnsUser);
+
+        return newAppUser.getUserId();
     }
 
 }
