@@ -11,4 +11,5 @@ public interface BoardImageRepository extends JpaRepository<BoardImage, Long> {
     List<BoardImage> findAllByBoard(Board board);
     List<BoardImage> findAllByDraft(Draft draft);
     List<BoardImage> findAllByImageIdInAndBoardIsNull(List<Long> imageIds);
+    List<BoardImage> findAllByDraftIn(List<Draft> drafts);
 }

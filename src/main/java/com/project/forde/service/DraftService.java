@@ -1,9 +1,11 @@
 package com.project.forde.service;
 
 import com.project.forde.dto.draft.DraftDto;
+import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
+import com.project.forde.mapper.DraftMapper;
 import com.project.forde.repository.*;
 import com.project.forde.type.ImageActionEnum;
 import com.project.forde.type.ImagePathEnum;
@@ -30,6 +32,36 @@ public class DraftService {
     private final FileService fileService;
 
     private final FileStore fileStore;
+
+    public List<DraftDto.Response.Draft> getDrafts(final Long userId) {
+        AppUser user = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        List<Draft> drafts = draftRepository.findTop10ByUploaderOrderByDraftIdDesc(user);
+        List<DraftTag> draftTags = draftTagRepository.findAllByDraftTagPK_DraftIn(drafts);
+        List<BoardImage> boardImages = boardImageRepository.findAllByDraftIn(drafts);
+
+        return drafts.stream().map(
+                draft -> {
+                    List<Long> imageIds = boardImages.stream().filter(
+                            boardImage -> boardImage.getDraft().equals(draft)
+                    ).map(BoardImage::getImageId).toList();
+
+                    List<TagDto.Response.Tag> tags = draftTags.stream().filter(
+                            draftTag -> draftTag.getDraftTagPK().getDraft().equals(draft)
+                    ).map(draftTag -> new TagDto.Response.Tag(
+                                draftTag.getDraftTagPK().getTag().getTagId(),
+                                draftTag.getDraftTagPK().getTag().getTagName()
+                    )).toList();
+
+                    return DraftMapper.INSTANCE.toDraft(
+                            draft,
+                            tags,
+                            imageIds
+                    );
+                }
+        ).toList();
+    }
 
     @Transactional
     public void create(final Long userId, final DraftDto.Request request) {

@@ -17,6 +17,11 @@ import java.net.URI;
 public class DraftController {
     private final DraftService draftService;
 
+    @GetMapping()
+    public ResponseEntity<?> getDrafts() {
+        return ResponseEntity.ok(draftService.getDrafts(1L));
+    }
+
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createDraft(@Valid final DraftDto.Request request) {
         draftService.create(1L, request);

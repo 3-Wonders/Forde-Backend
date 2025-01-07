@@ -1,10 +1,12 @@
 package com.project.forde.dto.draft;
 
+import com.project.forde.dto.tag.TagDto;
 import com.project.forde.type.BoardTypeEnum;
 import com.project.forde.type.ImageActionEnum;
 import com.project.forde.validation.EnumValue;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -25,6 +27,23 @@ public class DraftDto {
 
         public String getThumbnailAction() {
             return thumbnailAction.toUpperCase();
+        }
+    }
+
+    public static class Response {
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        public static class Draft {
+            private Long draftId;
+            private Character boardType;
+            private String title;
+            private String content;
+            private String thumbnail;
+            private List<TagDto.Response.Tag> tags;
+            private List<Long> imageIds;
+            private String createdTime;
         }
     }
 }
