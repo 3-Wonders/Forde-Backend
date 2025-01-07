@@ -71,9 +71,10 @@ public class AppUserService {
         return user.getUserId();
     }
 
-    public AppUser createSnsUser(String email, String nickname, String profilePath) {
+    public AppUser createSnsUser(String email, String nickname, String profilePath, String snsKind) {
         AppUser newAppUser = new AppUser();
         newAppUser.setEmail(email);
+        if(!snsKind.equals("1001")) newAppUser.setVerified(true);
         newAppUser.setNickname(nickname);
         newAppUser.setProfilePath(profilePath);
         appUserRepository.save(newAppUser);

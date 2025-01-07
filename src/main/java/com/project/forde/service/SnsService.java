@@ -35,6 +35,10 @@ public class SnsService extends DefaultOAuth2UserService {
             snsKind = "1001";
             return kakaoAuth(oAuth2User, snsKind);
         }
+        else if(socialType.equalsIgnoreCase("naver")) {
+            snsKind = "1002";
+            return naverAuth(oAuth2User, snsKind);
+        }
         else {
             throw new CustomException(ErrorCode.INTERNAL_SERVER_ERROR);
         }
@@ -76,6 +80,35 @@ public class SnsService extends DefaultOAuth2UserService {
 
     }
 
+    public Long naverAuth(OAuth2User oAuth2User, String snsKind) {
+        Map<String, Object> attributes = oAuth2User.getAttributes();
+        Map<String, Object> naverResponse = (Map<String, Object>) attributes.get("response");
+        if(naverResponse == null) {
+            throw new CustomException(ErrorCode.NOT_FOUND_SNS_ACCOUNT);
+        }
+
+        String socialId = (String) naverResponse.get("id");
+        String email = (String) naverResponse.get("email");
+        String name = (String) naverResponse.get("nickname");
+        String profilePath = (String) naverResponse.get("profile_image");
+
+        if(socialId == null || socialId.isEmpty()) {
+            throw new CustomException(ErrorCode.NOT_FOUND_SNS_ID);
+        }
+
+        Optional<Sns> sns = snsRepository.findBySnsId(socialId);
+
+        // 회원가입인 경우
+        if (sns.isEmpty()) {
+            create(socialId, email, snsKind, name, profilePath);
+            return null;
+        }
+        // 로그인일 경우
+        else {
+            return sns.get().getAppUser().getUserId();
+        }
+    }
+
     public Long googleAuth(OAuth2User oAuth2User, String snsKind) {
         String socialId = oAuth2User.getAttribute("sub");
         String email = oAuth2User.getAttribute("email");
@@ -101,7 +134,7 @@ public class SnsService extends DefaultOAuth2UserService {
 
     public void create(String socialId, String email, String snsKind, String name, String profilePath) {
         // AppUser 계정 생성
-        AppUser newAppUser = appUserService.createSnsUser(email, name, profilePath);
+        AppUser newAppUser = appUserService.createSnsUser(email, name, profilePath, snsKind);
 
         // SNS 계정 생성
         Sns newSnsUser = new Sns();
