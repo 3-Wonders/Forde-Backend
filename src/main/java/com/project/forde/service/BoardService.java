@@ -151,6 +151,7 @@ public class BoardService {
         updateTags(board, request.getTagIds());
         boardImageService.updateDiffImages(board, request.getImageIds());
 
+        board.setCategory(request.getBoardType().charAt(0));
         board.setTitle(request.getTitle());
         board.setContent(request.getContent());
         board.setUpdatedTime(new CustomTimestamp().getTimestamp());

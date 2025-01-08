@@ -14,6 +14,7 @@ import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.BoardRepository;
 import com.project.forde.repository.CommentRepository;
 import com.project.forde.repository.MentionRepository;
+import com.project.forde.type.BoardTypeEnum;
 import com.project.forde.util.CustomTimestamp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,26 +43,18 @@ public class CommentService {
 
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
         Page<Comment> response = commentRepository.findAllByBoardOrderByCommentIdDesc(board, pageable);
-        long total = response.getTotalElements();
 
-        List<Mention> mentions = mentionService.getMentionIn(response.stream().toList());
+        return getComments(response.getContent());
+    }
 
-        List<CommentDto.Response.Comment> comments = response.getContent().stream().map(
-            comment -> CommentMapper.INSTANCE.toDto(
-                    comment,
-                    mentions.stream().filter(
-                            mention -> mention.getMentionPK().getComment().equals(comment)
-                    ).map(
-                            mention -> new MentionDto.Response.Mention(
-                                    mention.getMentionPK().getUser().getUserId(),
-                                    mention.getMentionPK().getUser().getNickname()
-                            )
-                    ).toList(),
-                    comment.getParent() != null && comment.getParent().getCommentId() != null
-            )
-        ).toList();
+    public CommentDto.Response.Comments getReplies(final Long boardId, final Long parentId, final int page, final int count) {
+        Board board = boardRepository.findByBoardId(boardId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
 
-        return new CommentDto.Response.Comments(comments, total);
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+        Page<Comment> response = commentRepository.findAllByParent_CommentIdOrderByCommentIdDesc(parentId, pageable);
+
+        return getComments(response.getContent());
     }
 
     @Transactional
@@ -72,58 +65,98 @@ public class CommentService {
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
 
-        Comment comment = CommentMapper.INSTANCE.toEntity(user, board, request.getContent());
-        Comment createdComment = commentRepository.save(comment);
-
-        if (request.getUserId() != null && !request.getUserId().isEmpty()) {
-            List<Long> withOutMeUserIds = request.getUserId().stream()
-                    .filter(uid -> !uid.equals(userId))
-                    .toList();
-            List<AppUser> users = appUserRepository.findAllByUserIdIn(withOutMeUserIds);
-
-            if (isInValidMention(users, request.getContent())) {
-                throw new CustomException(ErrorCode.INVALID_MENTION);
-            }
-
-            // TODO: Notification 발생
-
-            List<Mention> mentions = users.stream().map(mentionUser -> {
-                MentionPK mentionPK = new MentionPK(createdComment, mentionUser);
-                Mention mention = new Mention();
-                mention.setMentionPK(mentionPK);
-
-                return mention;
-            }).toList();
-
-            mentionRepository.saveAll(mentions);
-        }
+        Comment createdComment = createComment(user, board, null, request);
+        mentionService.create(
+                userId,
+                createdComment,
+                request
+        );
     }
 
     @Transactional
-    public void update(final Long userId, final Long commentId, final CommentDto.Request request) {
+    public void createReply(final Long userId, final Long boardId, final Long parentId, final CommentDto.Request request) {
         AppUser user = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        Board board = boardRepository.findByBoardId(boardId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
+
+        Comment comment = CommentMapper.INSTANCE.toEntity(user, board, request.getContent());
+        Comment parentComment = commentRepository.findByCommentId(parentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_COMMENT));
+
+        createComment(user, board, parentComment, request);
+        mentionService.create(
+                userId,
+                comment,
+                request
+        );
+    }
+
+    @Transactional
+    public void adopt(final Long userId, final Long boardId, final Long commentId) {
+        AppUser user = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        Board board = boardRepository.findByBoardId(boardId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
+
+        Boolean existAdoptedComment = commentRepository.existsByBoardAndIsAdopt(board, true);
+        if (existAdoptedComment) {
+            throw new CustomException(ErrorCode.ALREADY_ADOPTED_COMMENT);
+        }
 
         Comment comment = commentRepository.findByCommentId(commentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_COMMENT));
 
+        if (comment.getIsDeleted()) {
+            throw new CustomException(ErrorCode.DELETED_COMMENT);
+        } else if (!comment.getBoard().getBoardId().equals(board.getBoardId())) {
+            throw new CustomException(ErrorCode.NOT_MATCHED_COMMENT_BOARD);
+        } else if (!comment.getBoard().getCategory().equals(BoardTypeEnum.Q.getType())) {
+            throw new CustomException(ErrorCode.NOT_QUESTION_BOARD);
+        } else if (!comment.getBoard().getUploader().getUserId().equals(user.getUserId())) {
+            throw new CustomException(ErrorCode.NOT_MATCHED_BOARD_UPLOADER);
+        }
+
+        comment.setIsAdopt(true);
+        commentRepository.save(comment);
+    }
+
+    @Transactional
+    public void update(final Long userId, final Long boardId, final Long commentId, final CommentDto.Request request) {
+        AppUser user = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        Board board = boardRepository.findByBoardId(boardId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
+
+        Comment comment = commentRepository.findByCommentId(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_COMMENT));
+
+        if (comment.getIsDeleted()) {
+            throw new CustomException(ErrorCode.DELETED_COMMENT);
+        } else if (!comment.getUploader().getUserId().equals(user.getUserId())) {
+            throw new CustomException(ErrorCode.NOT_MATCHED_COMMENT_UPLOADER);
+        } else if (!comment.getBoard().getBoardId().equals(board.getBoardId())) {
+            throw new CustomException(ErrorCode.NOT_MATCHED_COMMENT_BOARD);
+        }
+
         comment.setContent(request.getContent());
         comment.setUpdatedTime(new CustomTimestamp().getTimestamp());
 
-        if (!comment.getUploader().getUserId().equals(user.getUserId())) {
-            throw new CustomException(ErrorCode.NOT_MATCHED_COMMENT_UPLOADER);
-        }
+        List<Long> mentionIds = request.getUserIds();
 
-        if (request.getUserId() != null && !request.getUserId().isEmpty()) {
+        if (mentionIds != null && !mentionIds.isEmpty()) {
             List<Mention> existingMentions = mentionRepository.findAllByMentionPK_Comment(comment);
             List<Mention> deleteMentions = existingMentions.stream()
-                    .filter(mention -> !request.getUserId().contains(mention.getMentionPK().getUser().getUserId()))
+                    .filter(mention -> !mentionIds.contains(mention.getMentionPK().getUser().getUserId()))
                     .toList();
 
             Set<Long> existingMentionUserIds = existingMentions.stream()
                     .map(mention -> mention.getMentionPK().getUser().getUserId())
                     .collect(Collectors.toSet());
-            Set<Long> newMentionUserIds = request.getUserId().stream()
+            Set<Long> newMentionUserIds = mentionIds.stream()
                     .filter(uid -> !existingMentionUserIds.contains(uid) && !uid.equals(userId))
                     .collect(Collectors.toSet());
             List<AppUser> newMentionUsers = appUserRepository.findAllByUserIdIn(newMentionUserIds.stream().toList());
@@ -137,16 +170,76 @@ public class CommentService {
                     })
                     .toList();
 
-            if (isInValidMention(newMentionUsers, request.getContent())) {
+            if (mentionService.isInValidMention(newMentionUsers, request.getContent())) {
                 throw new CustomException(ErrorCode.INVALID_MENTION);
             }
 
             mentionRepository.deleteAllInBatch(deleteMentions);
             mentionRepository.saveAll(newMentions);
+
+            // TODO: Notification 발생
         }
     }
 
-    private boolean isInValidMention(final List<AppUser> users, String content) {
-        return !users.stream().allMatch(user -> content.trim().contains("@" + user.getNickname()));
+    @Transactional
+    public void delete(final Long userId, final Long boardId, final Long commentId) {
+        AppUser user = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        Board board = boardRepository.findByBoardId(boardId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
+
+        Comment comment = commentRepository.findByCommentId(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_COMMENT));
+
+        if (comment.getIsDeleted()) {
+            throw new CustomException(ErrorCode.DELETED_COMMENT);
+        } else if (!comment.getUploader().getUserId().equals(user.getUserId())) {
+            throw new CustomException(ErrorCode.NOT_MATCHED_COMMENT_UPLOADER);
+        } else if (!comment.getBoard().getBoardId().equals(board.getBoardId())) {
+            throw new CustomException(ErrorCode.NOT_MATCHED_COMMENT_BOARD);
+        } else if (comment.getIsAdopt()) {
+            throw new CustomException(ErrorCode.BAD_REQUEST_ALREADY_ADOPTED);
+        }
+
+        comment.setIsDeleted(true);
+        comment.setDeletedTime(new CustomTimestamp().getTimestamp());
+        commentRepository.save(comment);
+    }
+
+    private CommentDto.Response.Comments getComments(final List<Comment> comments) {
+        long total = comments.size();
+
+        List<Mention> mentions = mentionService.getMentionIn(comments);
+
+        List<CommentDto.Response.Comment> commentList = comments.stream().map(
+                comment -> CommentMapper.INSTANCE.toDto(
+                        comment,
+                        mentions.stream().filter(
+                                mention -> mention.getMentionPK().getComment().equals(comment)
+                        ).map(
+                                mention -> new MentionDto.Response.Mention(
+                                        mention.getMentionPK().getUser().getUserId(),
+                                        mention.getMentionPK().getUser().getNickname()
+                                )
+                        ).toList(),
+                        comment.getParent() != null && comment.getParent().getCommentId() != null
+                )
+        ).toList();
+
+        return new CommentDto.Response.Comments(commentList, total);
+    }
+
+    private Comment createComment(final AppUser user, final Board board, final Comment parent, final CommentDto.Request request) {
+        Comment comment = CommentMapper.INSTANCE.toEntity(user, board, request.getContent());
+        if (board.getCategory().equals(BoardTypeEnum.Q.getType())) {
+            comment.setIsAdopt(false);
+        }
+
+        if (parent != null) {
+            comment.setParent(parent);
+        }
+
+        return commentRepository.save(comment);
     }
 }

@@ -16,6 +16,8 @@ public enum ErrorCode {
     BAD_REQUEST_TAG(HttpStatus.BAD_REQUEST, "요청하신 Tag ID가 잘못되었습니다.", "B40007"),
     BAD_REQUEST_IMAGE(HttpStatus.BAD_REQUEST, "요청하신 Image ID가 잘못되었습니다.", "B40008"),
     INVALID_MENTION(HttpStatus.BAD_REQUEST, "내용 안에 멘션의 정보가 존재하지 않습니다.", "B40009"),
+    NOT_QUESTION_BOARD(HttpStatus.BAD_REQUEST, "질문 게시글이 아닙니다.", "B40011"),
+    BAD_REQUEST_ALREADY_ADOPTED(HttpStatus.BAD_REQUEST, "채택된 댓글은 삭제할 수 없습니다.", "B40012"),
 
     NOT_MATCHED_LOGIN_INFO(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다.", "U40101"),
     EXPIRED_COOKIE(HttpStatus.UNAUTHORIZED, "만료된 쿠키입니다.", "U40102"),
@@ -28,6 +30,8 @@ public enum ErrorCode {
     NOT_MATCHED_BOARD_UPLOADER(HttpStatus.FORBIDDEN, "게시글 작성자가 아닙니다.", "F40305"),
     NOT_MATCHED_COMMENT_UPLOADER(HttpStatus.FORBIDDEN, "댓글 작성자가 아닙니다.", "F40306"),
     NOT_MATCHED_DRAFT(HttpStatus.FORBIDDEN, "임시 저장을 한 작성자가 아닙니다.", "F40307"),
+    NOT_MATCHED_COMMENT_BOARD(HttpStatus.FORBIDDEN, "해당 게시글의 댓글이 아닙니다.", "F40308"),
+    DELETED_COMMENT(HttpStatus.FORBIDDEN, "삭제된 댓글입니다.", "F40309"),
 
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자가 존재하지 않습니다.", "N40401"),
     NOT_FOUND_VERIFIED_EMAIL(HttpStatus.NOT_FOUND, "인증을 요청한 이메일이 존재하지 않습니다.", "N40402"),
@@ -39,6 +43,7 @@ public enum ErrorCode {
     DUPLICATED_NICKNAME(HttpStatus.CONFLICT, "닉네임 중복입니다.", "C40901"),
     DUPLICATED_EMAIL(HttpStatus.CONFLICT, "이메일 중복입니다.", "C40902"),
     DUPLICATED_SNS_ACCOUNT(HttpStatus.CONFLICT, "SNS 계정 중복입니다.", "C40903"),
+    ALREADY_ADOPTED_COMMENT(HttpStatus.CONFLICT, "이미 채택된 댓글이 존재합니다.", "C40904"),
 
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 서버 에러가 발생하였습니다.", "I50000"),
     ERROR_EMAIL_SENDER(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송 오류가 발생하였습니다.", "I50001"),

@@ -4,9 +4,7 @@ import com.project.forde.dto.comment.CommentDto;
 import com.project.forde.dto.mention.MentionDto;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Board;
-import com.project.forde.entity.BoardLike;
 import com.project.forde.entity.Comment;
-import com.project.forde.entity.composite.BoardLikePK;
 import org.mapstruct.*;
 import org.mapstruct.factory.Mappers;
 
@@ -35,4 +33,12 @@ public interface CommentMapper {
     @Mapping(source = "comment.isAdopt", target = "isAdopt")
     @Mapping(source = "comment.createdTime", target = "createdTime", qualifiedBy = { MapCreatedTime.class, CustomTimestampTranslator.class })
     CommentDto.Response.Comment toDto(Comment comment, List<MentionDto.Response.Mention> mentions, Boolean hasReply);
+
+    @AfterMapping
+    default void handleDeleteComment(@MappingTarget CommentDto.Response.Comment dto, Comment comment) {
+        if (comment.getIsDeleted()) {
+            dto.setContent("삭제된 댓글입니다.");
+            dto.setUploader(null);
+        }
+    }
 }

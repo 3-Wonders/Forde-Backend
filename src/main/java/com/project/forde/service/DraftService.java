@@ -120,6 +120,7 @@ public class DraftService {
         draftTagService.updateDiffTags(draft, request.getTagIds());
         boardImageService.updateDiffImages(draft, request.getImageIds());
 
+        draft.setCategory(request.getBoardType().charAt(0));
         draft.setTitle(request.getTitle());
         draft.setContent(request.getContent());
         draft.setUpdatedTime(new CustomTimestamp().getTimestamp());

@@ -6,6 +6,7 @@ import com.project.forde.dto.mention.MentionDto;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
@@ -15,13 +16,13 @@ public class CommentDto {
     public static class Request {
         @NotBlank(message = "내용을 입력해주세요.")
         private String content;
-        private List<Long> userId;
+        private List<Long> userIds;
     }
 
     public static class Response {
         @Getter
+        @Setter
         @AllArgsConstructor
-        @JsonInclude(JsonInclude.Include.NON_NULL)
         public static class Comment {
             private Long commentId;
             private Long parentId;

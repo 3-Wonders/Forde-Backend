@@ -1,7 +1,13 @@
 package com.project.forde.service;
 
+import com.project.forde.dto.comment.CommentDto;
+import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Comment;
 import com.project.forde.entity.Mention;
+import com.project.forde.entity.composite.MentionPK;
+import com.project.forde.exception.CustomException;
+import com.project.forde.exception.ErrorCode;
+import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.MentionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -14,8 +20,42 @@ import java.util.List;
 @Transactional(readOnly = true)
 public class MentionService {
     private final MentionRepository mentionRepository;
+    private final AppUserRepository appUserRepository;
 
     public List<Mention> getMentionIn(final List<Comment> comments) {
         return mentionRepository.findAllByMentionPK_CommentIn(comments);
+    }
+
+    @Transactional
+    public void create(final Long userId, final Comment createdComment, final CommentDto.Request request) {
+        List<Long> mentionIds = request.getUserIds();
+        String content = request.getContent();
+
+        if (mentionIds != null && !mentionIds.isEmpty()) {
+            List<Long> withOutMeUserIds = mentionIds.stream()
+                    .filter(uid -> !uid.equals(userId))
+                    .toList();
+            List<AppUser> users = appUserRepository.findAllByUserIdIn(withOutMeUserIds);
+
+            if (isInValidMention(users, content)) {
+                throw new CustomException(ErrorCode.INVALID_MENTION);
+            }
+
+            List<Mention> mentions = users.stream().map(mentionUser -> {
+                MentionPK mentionPK = new MentionPK(createdComment, mentionUser);
+                Mention mention = new Mention();
+                mention.setMentionPK(mentionPK);
+
+                return mention;
+            }).toList();
+
+            mentionRepository.saveAll(mentions);
+
+            // TODO: Notification 발생
+        }
+    }
+
+    public boolean isInValidMention(final List<AppUser> users, String content) {
+        return !users.stream().allMatch(user -> content.trim().contains("@" + user.getNickname()));
     }
 }
