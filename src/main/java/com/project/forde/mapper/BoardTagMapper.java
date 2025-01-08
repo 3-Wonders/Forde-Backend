@@ -1,8 +1,6 @@
 package com.project.forde.mapper;
 
-import com.project.forde.entity.Board;
 import com.project.forde.entity.BoardTag;
-import com.project.forde.entity.Tag;
 import com.project.forde.entity.composite.BoardTagPK;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

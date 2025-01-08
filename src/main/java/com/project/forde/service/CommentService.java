@@ -1,6 +1,7 @@
 package com.project.forde.service;
 
 import com.project.forde.dto.comment.CommentDto;
+import com.project.forde.dto.mention.MentionDto;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Board;
 import com.project.forde.entity.Comment;
@@ -15,6 +16,8 @@ import com.project.forde.repository.CommentRepository;
 import com.project.forde.repository.MentionRepository;
 import com.project.forde.util.CustomTimestamp;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +33,36 @@ public class CommentService {
     private final AppUserRepository appUserRepository;
     private final BoardRepository boardRepository;
     private final MentionRepository mentionRepository;
+
+    private final MentionService mentionService;
+
+    public CommentDto.Response.Comments getComments(final Long boardId, final int page, final int count) {
+        Board board = boardRepository.findByBoardId(boardId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
+
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+        Page<Comment> response = commentRepository.findAllByBoardOrderByCommentIdDesc(board, pageable);
+        long total = response.getTotalElements();
+
+        List<Mention> mentions = mentionService.getMentionIn(response.stream().toList());
+
+        List<CommentDto.Response.Comment> comments = response.getContent().stream().map(
+            comment -> CommentMapper.INSTANCE.toDto(
+                    comment,
+                    mentions.stream().filter(
+                            mention -> mention.getMentionPK().getComment().equals(comment)
+                    ).map(
+                            mention -> new MentionDto.Response.Mention(
+                                    mention.getMentionPK().getUser().getUserId(),
+                                    mention.getMentionPK().getUser().getNickname()
+                            )
+                    ).toList(),
+                    comment.getParent() != null && comment.getParent().getCommentId() != null
+            )
+        ).toList();
+
+        return new CommentDto.Response.Comments(comments, total);
+    }
 
     @Transactional
     public void create(final Long userId, final Long boardId, final CommentDto.Request request) {

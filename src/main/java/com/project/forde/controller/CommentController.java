@@ -16,8 +16,16 @@ import java.net.URI;
 public class CommentController {
     private final CommentService commentService;
 
+    @GetMapping
+    public ResponseEntity<?> getComments(
+            @PathVariable("board_id") final Long boardId,
+            @RequestParam(value = "page", defaultValue = "1") final int page,
+            @RequestParam(value = "count", defaultValue = "10") final int count
+    ) {
+        return ResponseEntity.ok(commentService.getComments(boardId, page, count));
+    }
+
     @PostMapping
-    
     public ResponseEntity<?> create(
             @PathVariable("board_id") final Long boardId,
             @Valid @RequestBody final CommentDto.Request request
