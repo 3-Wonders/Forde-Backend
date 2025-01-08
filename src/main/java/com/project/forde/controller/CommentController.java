@@ -17,8 +17,21 @@ public class CommentController {
     private final CommentService commentService;
 
     @PostMapping
-    public ResponseEntity<?> create(@PathVariable("board_id") final Long boardId, @Valid @RequestBody final CommentDto.Request request) {
+    
+    public ResponseEntity<?> create(
+            @PathVariable("board_id") final Long boardId,
+            @Valid @RequestBody final CommentDto.Request request
+    ) {
         commentService.create(1L, boardId, request);
         return ResponseEntity.created(URI.create("/board/" + boardId + "/comment")).build();
+    }
+
+    @PatchMapping("/{comment_id}")
+    public ResponseEntity<?> update(
+            @PathVariable("comment_id") final Long commentId,
+            @Valid @RequestBody final CommentDto.Request request
+    ) {
+        commentService.update(1L, commentId, request);
+        return ResponseEntity.noContent().build();
     }
 }
