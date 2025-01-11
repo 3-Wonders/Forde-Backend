@@ -36,6 +36,7 @@ public class AppUserDto {
         public static class Intro {
             private Long userId;
             private String nickname;
+            private String email;
             private String profilePath;
         }
     }

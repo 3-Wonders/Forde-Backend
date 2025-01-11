@@ -29,4 +29,10 @@ public interface AppUserMapper {
     @Mapping(source = "user.followingCount", target = "followingCount")
     @Mapping(source = "user.privateAccount", target = "isPrivate")
     ResponseOtherUserDto toResponseOtherUserDto(AppUser user);
+
+    @Mapping(source = "user.userId", target = "userId")
+    @Mapping(source = "user.nickname", target = "nickname")
+    @Mapping(source = "user.email", target = "email")
+    @Mapping(source = "user.profilePath", target = "profilePath")
+    AppUserDto.Response.Intro toResponseIntroUserDto(AppUser user);
 }

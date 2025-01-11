@@ -34,6 +34,16 @@ public class AppUserService {
         return AppUserMapper.INSTANCE.toResponseOtherUserDto(user);
     }
 
+    public AppUserDto.Response.Intro getIntroUser(HttpServletRequest request) {
+        GetCookie getCookie = new GetCookie(redisTemplate);
+        Long userId = getCookie.getUserId(request);
+
+        AppUser user = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        return AppUserMapper.INSTANCE.toResponseIntroUserDto(user);
+    }
+
     public void createAppUser(AppUserDto.Request request) {
         Optional<AppUser> appUser = appUserRepository.findByEmail(request.getEmail());
 

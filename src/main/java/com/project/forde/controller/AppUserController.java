@@ -71,6 +71,11 @@ public class AppUserController {
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/intro")
+    public ResponseEntity<?> getIntroUser(final HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getIntroUser(request));
+    }
+
     @GetMapping("/sample")
     public ResponseEntity<?> sampleTest(HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getRedisUserId(request));
