@@ -8,10 +8,12 @@ import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.AppUserMapper;
 import com.project.forde.repository.AppUserRepository;
+import com.project.forde.util.GetCookie;
 import com.project.forde.util.PasswordUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -22,6 +24,7 @@ import java.util.Optional;
 @Slf4j
 public class AppUserService {
     private final AppUserRepository appUserRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
         AppUser user = appUserRepository.findById(userId)
@@ -79,6 +82,15 @@ public class AppUserService {
         newAppUser.setProfilePath(profilePath);
         appUserRepository.save(newAppUser);
         return newAppUser;
+    }
+
+    public Long getRedisUserId(HttpServletRequest request) {
+        GetCookie getCookie = new GetCookie(redisTemplate);
+        Long userId = getCookie.getUserId(request);
+        System.out.println("userId : " +  userId);
+        System.out.println("session : " + request.getSession());
+        System.out.println("sessionId : " + request.getSession().getId());
+        return userId;
     }
 
 }

@@ -9,7 +9,7 @@ import lombok.NonNull;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 public class SessionInterceptor implements HandlerInterceptor {
-    private static final int EXTENDED_SESSION_TIME = 60 * 60 * 24 * 30; // 30 days
+    private static final int EXTENDED_SESSION_TIME = 60 * 30; // 30 min
 
     @Override
     public boolean preHandle(HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull Object handler) {

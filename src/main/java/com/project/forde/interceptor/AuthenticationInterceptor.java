@@ -27,7 +27,6 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
                     }
                 }
             }
-
             throw new CustomException(ErrorCode.BLANK_COOKIE);
         }
         if (session.getAttribute("userId") == null) {

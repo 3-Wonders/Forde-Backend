@@ -43,7 +43,8 @@ public class WebConfig implements WebMvcConfigurer {
                  * default -> 추가하지 않은 API는 누구나 사용 가능
                  * */
                 .includePathPattern("/user", PathMethod.GET)
-                .includePathPattern("/user", PathMethod.DELETE);
+                .includePathPattern("/user", PathMethod.DELETE)
+                .includePathPattern("/user/**", PathMethod.GET);
     }
 
     // Proxy 패턴을 사용하여 Path 및 Method를 체크하는 역할의 대리자(PathMatcher)를 생성
@@ -61,6 +62,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .includePathPattern("/**", PathMethod.PATCH)
                 .includePathPattern("/**", PathMethod.PUT)
                 .includePathPattern("/**", PathMethod.DELETE)
+                .includePathPattern("/user/**", PathMethod.GET)
                 .excludePathPattern("/user", PathMethod.POST)
                 .excludePathPattern("/user/login", PathMethod.POST)
                 .excludePathPattern("/user/verify/*", PathMethod.POST);
