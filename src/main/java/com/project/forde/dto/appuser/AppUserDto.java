@@ -21,10 +21,6 @@ public class AppUserDto {
         @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$", message = "영문자, 숫자, 특수문자를 1개씩 포함해야 합니다.")
         private String password;
 
-        @NotBlank(message = "닉네임을 입력해주세요.")
-        @Size(max = 10, message = "닉네임은 10자 이하여야 합니다.")
-        private String nickname;
-
         @NotNull(message = "일반 알림 여부를 체크해주세요.")
         private Boolean isEnableNotification;
 

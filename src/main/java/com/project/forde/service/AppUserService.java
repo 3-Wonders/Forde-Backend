@@ -13,6 +13,7 @@ import com.project.forde.util.PasswordUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -36,13 +37,18 @@ public class AppUserService {
     public void createAppUser(AppUserDto.Request request) {
         Optional<AppUser> appUser = appUserRepository.findByEmail(request.getEmail());
 
-        if (appUser.isPresent()) { // 유저가 있을 때
+        if (appUser.isPresent()) { // 이메일 중복
             throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
         }
 
         AppUser newUser = AppUserMapper.INSTANCE.toEntity(request);
-
         newUser.setUserPw(PasswordUtils.encodePassword(request.getPassword()));
+
+        String name;
+        do {
+            name = RandomStringUtils.random(10, 48, 122, true, true);
+        } while (appUserRepository.findByEmail(name).isPresent());
+        newUser.setNickname(name);
 
         if(request.getIsEnableNotification()) {
             newUser.setRecommendNotification(true);
@@ -74,11 +80,17 @@ public class AppUserService {
         return user.getUserId();
     }
 
-    public AppUser createSnsUser(String email, String nickname, String profilePath) {
+    public AppUser createSnsUser(String email,String profilePath) {
         AppUser newAppUser = new AppUser();
+        String name;
+
+        do {
+            name = RandomStringUtils.random(10, 48, 122, true, true);
+        } while (appUserRepository.findByEmail(name).isPresent());
+
         newAppUser.setEmail(email);
         if(email != null) newAppUser.setVerified(true);
-        newAppUser.setNickname(nickname);
+        newAppUser.setNickname(name);
         newAppUser.setProfilePath(profilePath);
         appUserRepository.save(newAppUser);
         return newAppUser;

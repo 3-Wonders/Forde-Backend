@@ -13,7 +13,6 @@ public interface AppUserMapper {
 
     @Mapping(source = "request.email", target = "email")
     @Mapping(source = "request.password", target = "userPw")
-    @Mapping(source = "request.nickname", target = "nickname")
     @Mapping(source = "request.isEnableNotification", target = "noticeNotification")
     @Mapping(source = "request.isEnableEvent", target = "eventNotification")
     AppUser toEntity(AppUserDto.Request request);

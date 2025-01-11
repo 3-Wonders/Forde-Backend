@@ -9,6 +9,7 @@ import com.project.forde.repository.SnsRepository;
 import com.project.forde.type.SocialTypeEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.hibernate.validator.internal.util.stereotypes.Lazy;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -40,7 +41,6 @@ public class SnsService extends DefaultOAuth2UserService {
 
     public Long snsAuth(OAuth2User oAuth2User, String snsKind) {
         String socialId = null;
-        String name = null;
         String profilePath = null;
         String email = null;
         switch (snsKind) {
@@ -59,7 +59,6 @@ public class SnsService extends DefaultOAuth2UserService {
                     throw new CustomException(ErrorCode.NOT_FOUND_SNS_PROFILE);
                 }
 
-                name = (String) profile.get("nickname");
                 profilePath = (String) profile.get("profile_image_url");
 
                 break;
@@ -72,7 +71,6 @@ public class SnsService extends DefaultOAuth2UserService {
 
                 socialId = (String) naverResponse.get("id");
                 email = (String) naverResponse.get("email");
-                name = (String) naverResponse.get("nickname");
                 profilePath = (String) naverResponse.get("profile_image");
 
                 break;
@@ -80,7 +78,6 @@ public class SnsService extends DefaultOAuth2UserService {
                 socialId = oAuth2User.getAttribute("sub");
                 email = oAuth2User.getAttribute("email");
                 profilePath = oAuth2User.getAttribute("picture");
-                name = oAuth2User.getAttribute("name");
                 break;
             case "1004" :
                 Integer githubSnsId = oAuth2User.getAttribute("id");
@@ -88,7 +85,6 @@ public class SnsService extends DefaultOAuth2UserService {
                 socialId = githubSnsId.toString();
                 email = oAuth2User.getAttribute("email");
                 profilePath = oAuth2User.getAttribute("avatar_url");
-                name = oAuth2User.getAttribute("name");
                 break;
         }
 
@@ -96,15 +92,11 @@ public class SnsService extends DefaultOAuth2UserService {
             throw new CustomException(ErrorCode.NOT_FOUND_SNS_ID);
         }
 
-        if(name == null) {
-            name = "anonymous";
-        }
-
         Optional<Sns> sns = snsRepository.findBySnsId(socialId);
 
         // 회원가입인 경우
         if (sns.isEmpty()) {
-            return create(socialId, email, snsKind, name, profilePath);
+            return create(socialId, email, snsKind, profilePath);
         }
         // 로그인일 경우
         else {
@@ -112,9 +104,9 @@ public class SnsService extends DefaultOAuth2UserService {
         }
     }
 
-    public Long create(String socialId, String email, String snsKind, String name, String profilePath) {
+    public Long create(String socialId, String email, String snsKind, String profilePath) {
         // AppUser 계정 생성
-        AppUser newAppUser = appUserService.createSnsUser(email, name, profilePath);
+        AppUser newAppUser = appUserService.createSnsUser(email, profilePath);
 
         // SNS 계정 생성
         Sns newSnsUser = new Sns();
