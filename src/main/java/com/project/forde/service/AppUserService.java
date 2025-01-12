@@ -3,11 +3,21 @@ package com.project.forde.service;
 import com.project.forde.dto.RequestLoginDto;
 import com.project.forde.dto.ResponseOtherUserDto;
 import com.project.forde.dto.appuser.AppUserDto;
+import com.project.forde.dto.sns.SnsDto;
+import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.AppUser;
+import com.project.forde.entity.InterestTag;
+import com.project.forde.entity.Sns;
+import com.project.forde.entity.Tag;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.AppUserMapper;
+import com.project.forde.mapper.TagMapper;
 import com.project.forde.repository.AppUserRepository;
+import com.project.forde.repository.InterestTagRepository;
+import com.project.forde.repository.SnsRepository;
+import com.project.forde.repository.TagRepository;
+import com.project.forde.type.SocialTypeEnum;
 import com.project.forde.util.GetCookie;
 import com.project.forde.util.PasswordUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +27,11 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -26,6 +40,9 @@ import java.util.Optional;
 public class AppUserService {
     private final AppUserRepository appUserRepository;
     private final RedisTemplate<String, Object> redisTemplate;
+    private final InterestTagRepository interestTagRepository;
+    private final TagRepository tagRepository;
+    private final SnsRepository snsRepository;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
         AppUser user = appUserRepository.findById(userId)
@@ -42,6 +59,48 @@ public class AppUserService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         return AppUserMapper.INSTANCE.toResponseIntroUserDto(user);
+    }
+
+    public AppUserDto.Response.myInfo getMyInfo(HttpServletRequest request) {
+        GetCookie getCookie = new GetCookie(redisTemplate);
+        Long userId = getCookie.getUserId(request);
+
+        AppUser appUser = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        List<InterestTag> interestTags = interestTagRepository.findAllById_AppUser(appUser);
+        List<Long> interestTagIds = interestTags.stream()
+                .map(interestTag -> interestTag.getId().getTag().getTagId())
+                .collect(Collectors.toList());
+        List<Tag> tags = tagRepository.findAllByTagIdIn(interestTagIds);
+        List<TagDto.Response.Tag> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
+
+        return AppUserMapper.INSTANCE.toResponseMyInfoDto(appUser, responseTags);
+    }
+
+    public AppUserDto.Response.account getAccount(HttpServletRequest request) {
+        GetCookie getCookie = new GetCookie(redisTemplate);
+        Long userId = getCookie.getUserId(request);
+
+        AppUser appUser = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        List<Sns> sns = snsRepository.findAllByAppUser(appUser);
+
+        Set<String> snsKindsWithTrue = sns.stream()
+                .map(Sns::getSnsKind)
+                .collect(Collectors.toSet());
+
+        List<SnsDto.Response.connectedStatus> snsInfos = Arrays.asList("1001", "1002", "1003", "1004").stream()
+                .map(snsKind -> new SnsDto.Response.connectedStatus(
+                        Integer.valueOf(snsKind),
+                        SocialTypeEnum.fromSnsKind(snsKind).name(),
+                        snsKindsWithTrue.contains(snsKind)
+                ))
+                .toList();
+
+        return AppUserMapper.INSTANCE.toResponseAccountDto(appUser, snsInfos);
+
     }
 
     public void createAppUser(AppUserDto.Request request) {

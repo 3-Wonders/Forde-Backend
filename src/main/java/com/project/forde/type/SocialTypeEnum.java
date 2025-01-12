@@ -1,5 +1,7 @@
 package com.project.forde.type;
 
+import com.project.forde.exception.CustomException;
+import com.project.forde.exception.ErrorCode;
 import lombok.Getter;
 
 @Getter
@@ -13,5 +15,14 @@ public enum SocialTypeEnum {
 
     SocialTypeEnum(String snsKind) {
         this.snsKind = snsKind;
+    }
+
+    public static SocialTypeEnum fromSnsKind(String snsKind) {
+        for (SocialTypeEnum type : values()) {
+            if (type.getSnsKind().equals(snsKind)) {
+                return type;
+            }
+        }
+        throw new CustomException(ErrorCode.INVALID_SOCIAL_TYPE);
     }
 }

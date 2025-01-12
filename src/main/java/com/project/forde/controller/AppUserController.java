@@ -76,8 +76,18 @@ public class AppUserController {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getIntroUser(request));
     }
 
+    @GetMapping("")
+    public ResponseEntity<?> getMyInfoUser(final HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getMyInfo(request));
+    }
+
     @GetMapping("/sample")
     public ResponseEntity<?> sampleTest(HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getRedisUserId(request));
+    }
+
+    @GetMapping("account")
+    public ResponseEntity<?> getAccount(final HttpServletRequest request) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getAccount(request));
     }
 }

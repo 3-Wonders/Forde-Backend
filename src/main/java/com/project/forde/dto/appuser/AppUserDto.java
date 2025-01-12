@@ -1,5 +1,7 @@
 package com.project.forde.dto.appuser;
 
+import com.project.forde.dto.sns.SnsDto;
+import com.project.forde.dto.tag.TagDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -7,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import jakarta.validation.constraints.NotNull;
+
+import java.util.List;
 
 public class AppUserDto {
 
@@ -38,6 +42,30 @@ public class AppUserDto {
             private String nickname;
             private String email;
             private String profilePath;
+        }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        public static class myInfo {
+            private Long userId;
+            private String nickname;
+            private String description;
+            private String profilePath;
+            private List<TagDto.Response.Tag> interestedTags;
+            private Integer boardCount;
+            private Integer newsCount;
+            private Integer likeCount;
+            private Integer commentCount;
+        }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        public static class account {
+            private Long userId;
+            private String email;
+            private List<SnsDto.Response.connectedStatus> snsInfos;
         }
     }
 }
