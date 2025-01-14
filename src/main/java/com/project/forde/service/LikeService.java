@@ -10,9 +10,10 @@ import com.project.forde.mapper.LikeMapper;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.BoardRepository;
 import com.project.forde.repository.LikeRepository;
-import jakarta.transaction.Transactional;
+import com.project.forde.type.NotificationTypeEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,8 @@ public class LikeService {
     private final LikeRepository likeRepository;
     private final AppUserRepository appUserRepository;
     private final BoardRepository boardRepository;
+
+    private final NotificationService notificationService;
 
     @Transactional
     public void createLike(Long userId, Long boardId) {
@@ -32,6 +35,14 @@ public class LikeService {
 
             boardRepository.save(board);
             likeRepository.save(LikeMapper.INSTANCE.toEntity(new BoardLikePK(user, board)));
+
+            notificationService.sendNotification(
+                    user,
+                    board.getUploader(),
+                    NotificationTypeEnum.BOARD_LIKE,
+                    board,
+                    null
+            );
         }
     }
 

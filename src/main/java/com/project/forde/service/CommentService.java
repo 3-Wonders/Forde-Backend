@@ -15,6 +15,7 @@ import com.project.forde.repository.BoardRepository;
 import com.project.forde.repository.CommentRepository;
 import com.project.forde.repository.MentionRepository;
 import com.project.forde.type.BoardTypeEnum;
+import com.project.forde.type.NotificationTypeEnum;
 import com.project.forde.util.CustomTimestamp;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,6 +37,7 @@ public class CommentService {
     private final MentionRepository mentionRepository;
 
     private final MentionService mentionService;
+    private final NotificationService notificationService;
 
     public CommentDto.Response.Comments getComments(final Long boardId, final int page, final int count) {
         Board board = boardRepository.findByBoardId(boardId)
@@ -66,10 +68,19 @@ public class CommentService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
 
         Comment createdComment = createComment(user, board, null, request);
+
         mentionService.create(
                 userId,
                 createdComment,
                 request
+        );
+
+        notificationService.sendNotification(
+                user,
+                board.getUploader(),
+                NotificationTypeEnum.BOARD_COMMENT,
+                board,
+                createdComment
         );
     }
 
@@ -81,15 +92,31 @@ public class CommentService {
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
 
-        Comment comment = CommentMapper.INSTANCE.toEntity(user, board, request.getContent());
         Comment parentComment = commentRepository.findByCommentId(parentId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_COMMENT));
 
-        createComment(user, board, parentComment, request);
+        Comment createdComment = createComment(user, board, parentComment, request);
+
         mentionService.create(
                 userId,
-                comment,
+                createdComment,
                 request
+        );
+
+        notificationService.sendNotification(
+                user,
+                board.getUploader(),
+                NotificationTypeEnum.BOARD_COMMENT,
+                board,
+                createdComment
+        );
+
+        notificationService.sendNotification(
+                user,
+                parentComment.getUploader(),
+                NotificationTypeEnum.COMMENT_REPLY,
+                board,
+                createdComment
         );
     }
 

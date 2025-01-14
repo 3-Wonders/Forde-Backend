@@ -10,7 +10,9 @@ import com.project.forde.repository.SseRepository;
 import com.project.forde.type.NotificationTypeEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -111,6 +113,8 @@ public class NotificationService {
      * <br /> <br />
      * 알림을 DB에 저장하고, 수신자의 emitter에 알림을 전송합니다.
      * 단, type이 CONNECTED인 경우에는 DB에 저장하지 않습니다.
+     * <br /> <br />
+     * ●주의● : 이 메서드는 비동기로 실행됩니다.
      *
      * @param sender 발신자
      * @param receiver 수신자
@@ -118,7 +122,12 @@ public class NotificationService {
      * @param board 게시글 (댓글, 좋아요, 언급 등의 경우)
      * @param comment 댓글 (댓글, 좋아요, 언급 등의 경우)
      */
+    @Async
     public void sendNotification(AppUser sender, AppUser receiver, NotificationTypeEnum type, Board board, Comment comment) {
+        if (sender.getUserId().equals(receiver.getUserId())) {
+            return;
+        }
+
         Notification notification;
 
         if (!type.equals(NotificationTypeEnum.CONNECTED)) {

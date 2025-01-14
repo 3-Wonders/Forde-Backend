@@ -14,6 +14,7 @@ public enum NotificationTypeEnum {
     EVENT("1007"),
     FOLLOW("1008"),
     FOLLOWING("1009"),
+    COMMENT_REPLY("1010"),
     ;
 
     private final String type;

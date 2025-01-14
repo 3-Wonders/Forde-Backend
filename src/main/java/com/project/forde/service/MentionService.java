@@ -9,8 +9,10 @@ import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.MentionRepository;
+import com.project.forde.type.NotificationTypeEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -21,6 +23,9 @@ import java.util.List;
 public class MentionService {
     private final MentionRepository mentionRepository;
     private final AppUserRepository appUserRepository;
+
+    private final AppUserService appUserService;
+    private final NotificationService notificationService;
 
     public List<Mention> getMentionIn(final List<Comment> comments) {
         return mentionRepository.findAllByMentionPK_CommentIn(comments);
@@ -49,9 +54,22 @@ public class MentionService {
                 return mention;
             }).toList();
 
+            if (mentions.isEmpty()) {
+                throw new CustomException(ErrorCode.INVALID_MENTION);
+            }
+
             mentionRepository.saveAll(mentions);
 
             // TODO: Notification 발생
+            mentions.forEach(mention -> {
+                notificationService.sendNotification(
+                        appUserService.getUser(userId),
+                        mention.getMentionPK().getUser(),
+                        NotificationTypeEnum.MENTION,
+                        createdComment.getBoard(),
+                        createdComment
+                );
+            });
         }
     }
 
