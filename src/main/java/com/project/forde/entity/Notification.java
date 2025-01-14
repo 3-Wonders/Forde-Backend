@@ -2,14 +2,21 @@
 package com.project.forde.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Formula;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
 @Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "notification")
 public class Notification {
@@ -51,5 +58,15 @@ public class Notification {
 
     @CreationTimestamp
     @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdTime; //생성된 시간
+    private LocalDateTime createdTime;
+
+    @Formula(value = "(SELECT " +
+                        "CASE WHEN EXISTS " +
+                            "(" +
+                                "SELECT 1 FROM notification_read nr" +
+                                    "WHERE nr.notification_id = notification_id AND nr.user_id = receiver_id" +
+                            ") " +
+                        "THEN true ELSE false " +
+                        "END)")
+    private Boolean isRead;
 }

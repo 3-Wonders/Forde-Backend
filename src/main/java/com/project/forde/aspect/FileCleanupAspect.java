@@ -20,7 +20,10 @@ public class FileCleanupAspect {
     }
 
     @AfterThrowing(
-            pointcut = "execution(* com.project.forde.service.*.*(..))",
+            pointcut = "execution(* com.project.forde.service.BoardService.*(..)) ||" +
+                    "execution(* com.project.forde.service.FileService.*(..)) ||" +
+                    "execution(* com.project.forde.service.BoardImageService.*(..)) ||" +
+                    "execution(* com.project.forde.service.DraftService.*(..))",
             throwing = "ex"
     )
     public void handleCleanup(Exception ex) throws Exception {

@@ -22,4 +22,9 @@ public class AppUserService {
 
         return AppUserMapper.INSTANCE.toResponseOtherUserDto(user);
     }
+
+    public AppUser getUser(Long userId) {
+        return appUserRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+    }
 }
