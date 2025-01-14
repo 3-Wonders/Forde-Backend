@@ -67,5 +67,14 @@ public class AppUserDto {
             private String email;
             private List<SnsDto.Response.connectedStatus> snsInfos;
         }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        public static class searchUserNickname {
+            private Long userId;
+            private String nickname;
+            private String profilePath;
+        }
     }
 }

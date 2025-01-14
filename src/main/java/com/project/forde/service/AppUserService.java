@@ -24,6 +24,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -101,6 +103,14 @@ public class AppUserService {
 
         return AppUserMapper.INSTANCE.toResponseAccountDto(appUser, snsInfos);
 
+    }
+
+    public List<AppUserDto.Response.searchUserNickname> getSearchUserNickname(final int page, final int count, String nickname) {
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+
+        Page<AppUser> appUsers = appUserRepository.findAllByNicknameContaining(pageable, nickname);
+
+        return appUsers.stream().map(AppUserMapper.INSTANCE::toResponseSearchNicknameDto).toList();
     }
 
     public void createAppUser(AppUserDto.Request request) {

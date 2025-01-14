@@ -56,4 +56,9 @@ public interface AppUserMapper {
     @Mapping(source = "user.email", target = "email")
     @Mapping(source = "snsInfos", target = "snsInfos")
     AppUserDto.Response.account toResponseAccountDto(AppUser user, List<SnsDto.Response.connectedStatus> snsInfos);
+
+    @Mapping(source = "user.userId", target = "userId")
+    @Mapping(source = "user.nickname", target = "nickname")
+    @Mapping(source = "user.profilePath", target = "profilePath")
+    AppUserDto.Response.searchUserNickname toResponseSearchNicknameDto(AppUser user);
 }

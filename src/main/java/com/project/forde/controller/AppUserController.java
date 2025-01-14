@@ -90,4 +90,13 @@ public class AppUserController {
     public ResponseEntity<?> getAccount(final HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getAccount(request));
     }
+
+    @GetMapping(value = "/mention")
+    public ResponseEntity<?> getSearchUsersNickname(
+            @RequestParam(value = "nickname", required = false, defaultValue = "") final String nickname,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getSearchUserNickname(page, count, nickname));
+    }
 }

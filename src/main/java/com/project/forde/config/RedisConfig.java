@@ -35,10 +35,10 @@ public class RedisConfig {
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setKeySerializer(new StringRedisSerializer()); // Key는 문자열 직렬화
-        redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer()); // Value는 JDK 직렬화
-        redisTemplate.setHashKeySerializer(new StringRedisSerializer()); // Hash의 Key는 문자열 직렬화
-        redisTemplate.setHashValueSerializer(new JdkSerializationRedisSerializer()); // Hash의 Value는 JDK 직렬화
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new JdkSerializationRedisSerializer());
+        redisTemplate.setHashKeySerializer(new StringRedisSerializer());
+        redisTemplate.setHashValueSerializer(new JdkSerializationRedisSerializer());
         redisTemplate.setConnectionFactory(connectionFactory);
         return redisTemplate;
     }
