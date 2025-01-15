@@ -1,5 +1,7 @@
 package com.project.forde.service;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
@@ -22,10 +24,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,9 +46,16 @@ public class BoardService {
     private final FileStore fileStore;
 
     private BoardDto.Response.Boards createBoardsDto(Page<Board> boards) {
+        List<BoardTag> boardTags = boardTagRepository.findAllByBoardTagPK_BoardIn(boards.toList());
+        ListMultimap<Long, Tag> tagMap = ArrayListMultimap.create();
+
+        boardTags.forEach(boardTag -> {
+            Tag tag = boardTag.getBoardTagPK().getTag();
+            tagMap.put(boardTag.getBoardTagPK().getBoard().getBoardId(), tag);
+        });
+
         List<BoardDto.Response.Boards.Board> mappingBoards = boards.getContent().stream().map(board -> {
-            List<BoardTag> boardTags = boardTagRepository.findAllByBoardTagPK_Board(board);
-            List<Tag> tags = boardTags.stream().map(tag -> tag.getBoardTagPK().getTag()).toList();
+            List<Tag> tags = tagMap.get(board.getBoardId());
             List<TagDto.Response.Tag> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
 
             return BoardMapper.INSTANCE.toBoardsInBoard(board, responseTags);
@@ -74,6 +80,13 @@ public class BoardService {
     public BoardDto.Response.Boards getSearchPosts(final int page, final int count, final String keyword) {
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
         Page<Board> boards = boardRepository.findALlByTitleContainingOrderByCreatedTimeDesc(pageable, keyword);
+
+        return createBoardsDto(boards);
+    }
+
+    public BoardDto.Response.Boards getPostsWithTag(final String keyword, final int page, final int count) {
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+        Page<Board> boards = boardRepository.findAllByTagNameOrderByCreatedTimeDesc(pageable, keyword);
 
         return createBoardsDto(boards);
     }

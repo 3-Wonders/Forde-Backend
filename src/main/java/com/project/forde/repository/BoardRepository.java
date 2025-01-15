@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
 
@@ -15,4 +17,17 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findAllByOrderByCreatedTimeDesc(Pageable pageable);
     Page<Board> findAllByCategoryOrderByCreatedTimeDesc(Pageable pageable, Character type);
     Page<Board> findALlByTitleContainingOrderByCreatedTimeDesc(Pageable pageable, String keyword);
+
+    @Query(
+            value = "SELECT b FROM Board b " +
+                    "JOIN FETCH b.uploader u " +
+                    "JOIN FETCH BoardTag bt ON b.boardId = bt.boardTagPK.board.boardId " +
+                    "JOIN FETCH Tag t ON bt.boardTagPK.tag.tagId = t.tagId " +
+                    "WHERE t.tagName LIKE CONCAT('%', :tagName, '%') " +
+                    "ORDER BY b.boardId DESC"
+    )
+    Page<Board> findAllByTagNameOrderByCreatedTimeDesc(
+            Pageable pageable,
+            @Param("tagName") String tagName
+    );
 }

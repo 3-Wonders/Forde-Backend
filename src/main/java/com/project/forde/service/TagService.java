@@ -1,5 +1,7 @@
 package com.project.forde.service;
 
+import com.project.forde.dto.tag.TagDto;
+import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Tag;
 import com.project.forde.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +16,20 @@ import java.util.List;
 public class TagService {
     private final TagRepository tagRepository;
 
+    private final AppUserService appUserService;
+
     public List<Tag> getTags(final List<Long> tagIds) {
         return tagRepository.findAllByTagIdIn(tagIds);
+    }
+
+    @Transactional
+    public TagDto.Response.TagId create(final TagDto.Request request) {
+        Tag tag = tagRepository.save(
+                Tag.builder()
+                        .tagName(request.getTagName())
+                        .build()
+        );
+        return new TagDto.Response.TagId(tag.getTagId());
     }
 
     /**
