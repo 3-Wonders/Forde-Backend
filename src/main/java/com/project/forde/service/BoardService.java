@@ -37,9 +37,10 @@ public class BoardService {
     private final BoardTagRepository boardTagRepository;
     private final BoardImageRepository boardImageRepository;
 
-    private final TagService tagService;
-    private final BoardTagService boardTagService;
     private final FileService fileService;
+    private final TagService tagService;
+    private final ViewService viewService;
+    private final BoardTagService boardTagService;
     private final BoardImageService boardImageService;
     private final AppUserService appUserService;
 
@@ -84,6 +85,9 @@ public class BoardService {
         List<BoardTag> boardTags = boardTagRepository.findAllByBoardTagPK_Board(board);
         List<Tag> tags = boardTags.stream().map(tag -> tag.getBoardTagPK().getTag()).toList();
         List<TagDto.Response.Tag> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
+
+        // TODO : userId가 존재한다면 (로그인 상태라면) 조회수 증가
+        // viewService.createView(userId, boardId);
 
         return BoardMapper.INSTANCE.toDetail(board, responseTags);
     }
