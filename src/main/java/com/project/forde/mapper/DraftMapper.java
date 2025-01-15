@@ -21,5 +21,5 @@ public interface DraftMapper {
     @Mapping(source = "tags", target = "tags")
     @Mapping(source = "imageIds", target = "imageIds")
     @Mapping(source = "draft.createdTime", target = "createdTime", qualifiedBy = { MapCreatedTime.class, CustomTimestampTranslator.class })
-    DraftDto.Response.Draft toDraft(Draft draft, List<TagDto.Response.Tag> tags, List<Long> imageIds);
+    DraftDto.Response.Draft toDraft(Draft draft, List<TagDto.Response.TagWithoutCount> tags, List<Long> imageIds);
 }

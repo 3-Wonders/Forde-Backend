@@ -12,5 +12,10 @@ public interface TagMapper {
 
     @Mapping(source = "tag.tagId", target = "tagId")
     @Mapping(source = "tag.tagName", target = "tagName")
-    TagDto.Response.Tag toTagWithoutCount(Tag tag);
+    TagDto.Response.TagWithoutCount toTagWithoutCount(Tag tag);
+
+    @Mapping(source = "tag.tagId", target = "tagId")
+    @Mapping(source = "tag.tagName", target = "tagName")
+    @Mapping(source = "tag.tagCount", target = "tagCount")
+    TagDto.Response.TagWithCount toTagWithCount(Tag tag);
 }

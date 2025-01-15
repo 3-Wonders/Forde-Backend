@@ -16,13 +16,27 @@ public class TagController {
     private final TagService tagService;
     private final BoardService boardService;
 
-    @GetMapping("/post")
+    @GetMapping
     public ResponseEntity<?> getTags(
+            @RequestParam final String keyword
+    ) {
+        return ResponseEntity.ok(tagService.getTags(keyword));
+    }
+
+    @GetMapping("/post")
+    public ResponseEntity<?> getPostsWithTag(
             @RequestParam final String keyword,
             @RequestParam(value = "page", defaultValue = "1") final int page,
             @RequestParam(value = "count", defaultValue = "10") final int count
     ) {
         return ResponseEntity.ok(boardService.getPostsWithTag(keyword, page, count));
+    }
+
+    @GetMapping("/popular")
+    public ResponseEntity<?> getPopularTags(
+            @RequestParam(value = "count", defaultValue = "6") final int count
+    ) {
+        return ResponseEntity.ok(tagService.getPopularTags(count));
     }
 
     @PostMapping

@@ -48,9 +48,9 @@ public class DraftService {
                             boardImage -> boardImage.getDraft().equals(draft)
                     ).map(BoardImage::getImageId).toList();
 
-                    List<TagDto.Response.Tag> tags = draftTags.stream().filter(
+                    List<TagDto.Response.TagWithoutCount> tags = draftTags.stream().filter(
                             draftTag -> draftTag.getDraftTagPK().getDraft().equals(draft)
-                    ).map(draftTag -> new TagDto.Response.Tag(
+                    ).map(draftTag -> new TagDto.Response.TagWithoutCount(
                                 draftTag.getDraftTagPK().getTag().getTagId(),
                                 draftTag.getDraftTagPK().getTag().getTagName()
                     )).toList();
@@ -81,7 +81,7 @@ public class DraftService {
                 .build();
         Draft createdDraft = draftRepository.save(draft);
 
-        List<Tag> tags = tagService.getTags(request.getTagIds());
+        List<Tag> tags = tagService.getTagsWithIds(request.getTagIds());
         if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
             draftTagService.createDraftTag(createdDraft, tags);
         }

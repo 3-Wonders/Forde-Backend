@@ -105,7 +105,7 @@ public class BoardDto {
                 private Long boardId;
                 private String thumbnail;
                 private String title;
-                private List<TagDto.Response.Tag> tags;
+                private List<TagDto.Response.TagWithoutCount> tags;
                 private Boolean isLike;
                 private AppUserDto.Response.Intro uploader;
                 private Long viewCount;
@@ -127,7 +127,7 @@ public class BoardDto {
             private String title;
             private String content;
             private String thumbnail;
-            private List<TagDto.Response.Tag> tags;
+            private List<TagDto.Response.TagWithoutCount> tags;
             private List<Long> imageIds;
             private String createdTime;
         }
@@ -142,7 +142,7 @@ public class BoardDto {
             private String title;
             private String content;
             private String thumbnail;
-            private List<TagDto.Response.Tag> tags;
+            private List<TagDto.Response.TagWithoutCount> tags;
             private Boolean isLike;
             private Long likeCount;
             private Long viewCount;

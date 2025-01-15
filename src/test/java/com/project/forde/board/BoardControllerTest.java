@@ -176,7 +176,7 @@ public class BoardControllerTest {
                 "content",
                 "content",
                 null,
-                List.of(new TagDto.Response.Tag(1L, "tag")),
+                List.of(new TagDto.Response.TagWithoutCount(1L, "tag")),
                 List.of(1L),
                 "2021-08-01 13:00:00"
         ));
@@ -208,7 +208,7 @@ public class BoardControllerTest {
                 "title",
                 "content",
                 null,
-                List.of(new TagDto.Response.Tag(1L, "tag")),
+                List.of(new TagDto.Response.TagWithoutCount(1L, "tag")),
                 false,
                 0L,
                 0L,

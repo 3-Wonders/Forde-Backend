@@ -55,7 +55,7 @@ public class DraftDto {
             private String title;
             private String content;
             private String thumbnail;
-            private List<TagDto.Response.Tag> tags;
+            private List<TagDto.Response.TagWithoutCount> tags;
             private List<Long> imageIds;
             private String createdTime;
         }

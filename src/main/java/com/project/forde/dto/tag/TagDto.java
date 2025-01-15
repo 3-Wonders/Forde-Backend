@@ -28,7 +28,7 @@ public class TagDto {
         @Getter
         @Setter
         @AllArgsConstructor
-        public static class Tag {
+        public static class TagWithoutCount {
             private Long tagId;
             private String tagName;
         }
@@ -36,8 +36,24 @@ public class TagDto {
         @Getter
         @Setter
         @AllArgsConstructor
-        public static class Tags {
-            private List<Tag> tags;
+        public static class TagsWithoutCount {
+            private List<TagWithoutCount> tags;
+        }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        public static class TagWithCount {
+            private Long tagId;
+            private String tagName;
+            private Long tagCount;
+        }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        public static class TagsWithCount {
+            private List<TagWithCount> tags;
         }
     }
 }
