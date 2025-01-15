@@ -27,6 +27,7 @@ public class DraftService {
     private final AppUserRepository appUserRepository;
     private final BoardImageRepository boardImageRepository;
 
+    private final AppUserService appUserService;
     private final TagService tagService;
     private final DraftTagService draftTagService;
     private final BoardImageService boardImageService;
@@ -35,8 +36,7 @@ public class DraftService {
     private final FileStore fileStore;
 
     public List<DraftDto.Response.Draft> getDrafts(final Long userId) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         List<Draft> drafts = draftRepository.findTop10ByUploaderOrderByDraftIdDesc(user);
         List<DraftTag> draftTags = draftTagRepository.findAllByDraftTagPK_DraftIn(drafts);
@@ -66,12 +66,7 @@ public class DraftService {
 
     @Transactional
     public void create(final Long userId, final DraftDto.Request.Create request) {
-        AppUser user = appUserRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-
-        if (user.getDeleted()) {
-            throw new CustomException(ErrorCode.DELETED_USER);
-        }
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         Long draftTotal = draftRepository.countByUploader(user);
         if (draftTotal >= 10) {
@@ -102,12 +97,7 @@ public class DraftService {
 
     @Transactional
     public void update(final Long userId, final Long draftId, final DraftDto.Request.Update request) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-
-        if (user.getDeleted()) {
-            throw new CustomException(ErrorCode.DELETED_USER);
-        }
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         Draft draft = draftRepository.findById(draftId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_DRAFT));
@@ -153,12 +143,7 @@ public class DraftService {
 
     @Transactional
     public void delete(final Long userId, final Long draftId) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-
-        if (user.getDeleted()) {
-            throw new CustomException(ErrorCode.DELETED_USER);
-        }
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         Draft draft = draftRepository.findById(draftId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_DRAFT));
@@ -180,6 +165,5 @@ public class DraftService {
         }
 
         imagePaths.forEach(fileStore::deleteFile);
-
     }
 }

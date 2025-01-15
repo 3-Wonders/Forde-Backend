@@ -14,6 +14,7 @@ import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.BoardRepository;
 import com.project.forde.repository.CommentRepository;
 import com.project.forde.repository.MentionRepository;
+import com.project.forde.type.AppUserCount;
 import com.project.forde.type.BoardTypeEnum;
 import com.project.forde.type.NotificationTypeEnum;
 import com.project.forde.util.CustomTimestamp;
@@ -38,6 +39,7 @@ public class CommentService {
 
     private final MentionService mentionService;
     private final NotificationService notificationService;
+    private final AppUserService appUserService;
 
     public CommentDto.Response.Comments getComments(final Long boardId, final int page, final int count) {
         Board board = boardRepository.findByBoardId(boardId)
@@ -61,13 +63,14 @@ public class CommentService {
 
     @Transactional
     public void create(final Long userId, final Long boardId, final CommentDto.Request request) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
 
         Comment createdComment = createComment(user, board, null, request);
+
+        appUserService.increaseCount(user, AppUserCount.COMMENT_COUNT);
 
         mentionService.create(
                 userId,
@@ -86,8 +89,7 @@ public class CommentService {
 
     @Transactional
     public void createReply(final Long userId, final Long boardId, final Long parentId, final CommentDto.Request request) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -96,6 +98,8 @@ public class CommentService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_COMMENT));
 
         Comment createdComment = createComment(user, board, parentComment, request);
+
+        appUserService.increaseCount(user, AppUserCount.COMMENT_COUNT);
 
         mentionService.create(
                 userId,
@@ -122,8 +126,7 @@ public class CommentService {
 
     @Transactional
     public void adopt(final Long userId, final Long boardId, final Long commentId) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -152,8 +155,7 @@ public class CommentService {
 
     @Transactional
     public void update(final Long userId, final Long boardId, final Long commentId, final CommentDto.Request request) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -210,8 +212,7 @@ public class CommentService {
 
     @Transactional
     public void delete(final Long userId, final Long boardId, final Long commentId) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -225,9 +226,11 @@ public class CommentService {
             throw new CustomException(ErrorCode.NOT_MATCHED_COMMENT_UPLOADER);
         } else if (!comment.getBoard().getBoardId().equals(board.getBoardId())) {
             throw new CustomException(ErrorCode.NOT_MATCHED_COMMENT_BOARD);
-        } else if (comment.getIsAdopt()) {
+        } else if (comment.getIsAdopt() != null && comment.getIsAdopt()) {
             throw new CustomException(ErrorCode.BAD_REQUEST_ALREADY_ADOPTED);
         }
+
+        appUserService.decreaseCount(user, AppUserCount.COMMENT_COUNT);
 
         comment.setIsDeleted(true);
         comment.setDeletedTime(new CustomTimestamp().getTimestamp());

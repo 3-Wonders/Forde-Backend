@@ -9,6 +9,7 @@ import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.*;
 import com.project.forde.repository.*;
 
+import com.project.forde.type.BoardTypeEnum;
 import com.project.forde.type.ImageActionEnum;
 import com.project.forde.type.ImagePathEnum;
 import com.project.forde.type.SortBoardTypeEnum;
@@ -31,7 +32,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BoardService {
-    private final AppUserRepository appUserRepository;
     private final BoardRepository boardRepository;
     private final TagRepository tagRepository;
     private final BoardTagRepository boardTagRepository;
@@ -41,6 +41,7 @@ public class BoardService {
     private final BoardTagService boardTagService;
     private final FileService fileService;
     private final BoardImageService boardImageService;
+    private final AppUserService appUserService;
 
     private final FileStore fileStore;
 
@@ -107,8 +108,7 @@ public class BoardService {
 
     @Transactional
     public Long create(final Long userId, final BoardDto.Request.Create request) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         if (user.getDeleted()) {
             throw new CustomException(ErrorCode.DELETED_USER);
@@ -120,6 +120,8 @@ public class BoardService {
         List<Tag> tags = tagService.increaseTagCount(request.getTagIds());
         boardTagService.createBoardTag(createdBoard, tags);
         boardImageService.createImages(createdBoard, request.getImageIds());
+
+        appUserService.increaseCount(user, BoardTypeEnum.valueOf(request.getBoardType()));
 
         fileService.processThumbnailAndSave(
                 request.getThumbnail(),
@@ -133,12 +135,7 @@ public class BoardService {
 
     @Transactional
     public void update(final Long userId, final Long boardId, final BoardDto.Request.Update request) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-
-        if (user.getDeleted()) {
-            throw new CustomException(ErrorCode.DELETED_USER);
-        }
+        appUserService.verifyUserAndGet(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -230,12 +227,7 @@ public class BoardService {
 
     @Transactional
     public void delete(final Long userId, final Long boardId) {
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-
-        if (user.getDeleted()) {
-            throw new CustomException(ErrorCode.DELETED_USER);
-        }
+        AppUser user = appUserService.verifyUserAndGet(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -256,6 +248,8 @@ public class BoardService {
         List<BoardImage> boardImages = boardImageRepository.findAllByBoard(board);
         List<String> imagePaths = new ArrayList<>(boardImages.stream().map(BoardImage::getImagePath).toList());
         boardImageRepository.deleteAll(boardImages);
+
+        appUserService.decreaseCount(user, BoardTypeEnum.valueOf(String.valueOf(board.getCategory())));
 
         if (board.getThumbnailPath() != null) {
             imagePaths.add(board.getThumbnailPath());

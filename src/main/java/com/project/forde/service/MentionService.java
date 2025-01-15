@@ -63,7 +63,7 @@ public class MentionService {
             // TODO: Notification 발생
             mentions.forEach(mention -> {
                 notificationService.sendNotification(
-                        appUserService.getUser(userId),
+                        appUserService.verifyUserAndGet(userId),
                         mention.getMentionPK().getUser(),
                         NotificationTypeEnum.MENTION,
                         createdComment.getBoard(),

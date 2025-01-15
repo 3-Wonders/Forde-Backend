@@ -28,7 +28,7 @@ public class Board {
     private AppUser uploader;
 
     @Column(name = "category", nullable = false, columnDefinition = "CHAR", length = 1)
-    private Character category; //게시글(B) / 뉴스(N)
+    private Character category;
 
     @Column(name = "title", nullable = false, length = 20)
     private String title;

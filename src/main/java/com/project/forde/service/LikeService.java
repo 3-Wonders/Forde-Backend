@@ -10,6 +10,7 @@ import com.project.forde.mapper.LikeMapper;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.BoardRepository;
 import com.project.forde.repository.LikeRepository;
+import com.project.forde.type.AppUserCount;
 import com.project.forde.type.NotificationTypeEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,16 +24,21 @@ public class LikeService {
     private final BoardRepository boardRepository;
 
     private final NotificationService notificationService;
+    private final AppUserService appUserService;
 
     @Transactional
     public void createLike(Long userId, Long boardId) {
-        AppUser user = appUserRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
+        AppUser user = appUserService.verifyUserAndGet(userId);
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
+
         BoardLike like = likeRepository.findByBoardLikePK(new BoardLikePK(user, board)).orElse(null);
 
         if (like == null) {
             board.setLikeCount(board.getLikeCount() + 1);
 
+            appUserService.increaseCount(board.getUploader(), AppUserCount.LIKE_COUNT);
             boardRepository.save(board);
             likeRepository.save(LikeMapper.INSTANCE.toEntity(new BoardLikePK(user, board)));
 
@@ -48,13 +54,17 @@ public class LikeService {
 
     @Transactional
     public void deleteLike(Long userId, Long boardId) {
-        AppUser user = appUserRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-        Board board = boardRepository.findById(boardId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
+        AppUser user = appUserService.verifyUserAndGet(userId);
+
+        Board board = boardRepository.findById(boardId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
+
         BoardLike like = likeRepository.findByBoardLikePK(new BoardLikePK(user, board)).orElse(null);
 
         if (like != null) {
             board.setLikeCount(board.getLikeCount() - 1);
 
+            appUserService.decreaseCount(board.getUploader(), AppUserCount.LIKE_COUNT);
             boardRepository.save(board);
             likeRepository.delete(like);
         }

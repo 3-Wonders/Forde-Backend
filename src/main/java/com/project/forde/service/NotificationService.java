@@ -33,7 +33,7 @@ public class NotificationService {
 
     @Transactional
     public SseEmitter subscribe(String lastEventId) {
-        AppUser user = appUserService.getUser(1L);
+        AppUser user = appUserService.verifyUserAndGet(1L);
         String emitterId = user.getUserId() + "_" + System.currentTimeMillis();
         SseEmitter emitter = sseRepository.save(emitterId, new SseEmitter(TIME_OUT));
 

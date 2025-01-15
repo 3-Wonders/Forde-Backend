@@ -44,6 +44,9 @@ public class AppUser {
     @Column(name = "news_count", nullable = false, columnDefinition = "INT UNSIGNED DEFAULT 0")
     private Long newsCount; // 작성한 뉴스 갯수
 
+    @Column(name = "question_count", nullable = false, columnDefinition = "INT UNSIGNED DEFAULT 0")
+    private Long questionCount; // 작성한 질문 갯수
+
     @Column(name = "comment_count", nullable = false, columnDefinition = "INT UNSIGNED DEFAULT 0")
     private Long commentCount; // 작성한 댓글 갯수
 
