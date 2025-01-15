@@ -76,6 +76,15 @@ public class AppUserController {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getIntroUser(request));
     }
 
+    @GetMapping("/{user_id}/news")
+    public ResponseEntity<?> getUserNews(
+            @PathVariable(value = "user_id") Long userId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+            ) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserNews(userId, page, count));
+    }
+
     @GetMapping("")
     public ResponseEntity<?> getMyInfoUser(final HttpServletRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getMyInfo(request));

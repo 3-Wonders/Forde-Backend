@@ -3,20 +3,16 @@ package com.project.forde.service;
 import com.project.forde.dto.RequestLoginDto;
 import com.project.forde.dto.ResponseOtherUserDto;
 import com.project.forde.dto.appuser.AppUserDto;
+import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
-import com.project.forde.entity.AppUser;
-import com.project.forde.entity.InterestTag;
-import com.project.forde.entity.Sns;
-import com.project.forde.entity.Tag;
+import com.project.forde.entity.*;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.AppUserMapper;
+import com.project.forde.mapper.BoardMapper;
 import com.project.forde.mapper.TagMapper;
-import com.project.forde.repository.AppUserRepository;
-import com.project.forde.repository.InterestTagRepository;
-import com.project.forde.repository.SnsRepository;
-import com.project.forde.repository.TagRepository;
+import com.project.forde.repository.*;
 import com.project.forde.type.SocialTypeEnum;
 import com.project.forde.util.GetCookie;
 import com.project.forde.util.PasswordUtils;
@@ -45,6 +41,9 @@ public class AppUserService {
     private final InterestTagRepository interestTagRepository;
     private final TagRepository tagRepository;
     private final SnsRepository snsRepository;
+    private final BoardRepository boardRepository;
+    private final BoardTagRepository boardTagRepository;
+    private final BoardService boardService;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
         AppUser user = appUserRepository.findById(userId)
@@ -103,6 +102,17 @@ public class AppUserService {
 
         return AppUserMapper.INSTANCE.toResponseAccountDto(appUser, snsInfos);
 
+    }
+
+    public BoardDto.Response.Boards getUserNews(Long userId, final int page, final int count) {
+        AppUser appUser = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+
+        Page<Board> boards = boardRepository.findAllByUploaderOrderByCreatedTimeDesc(pageable, appUser);
+
+        return boardService.createBoardsDto(boards);
     }
 
     public List<AppUserDto.Response.searchUserNickname> getSearchUserNickname(final int page, final int count, String nickname) {

@@ -1,5 +1,6 @@
 package com.project.forde.repository;
 
+import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Board;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,4 +16,5 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findAllByOrderByCreatedTimeDesc(Pageable pageable);
     Page<Board> findAllByCategoryOrderByCreatedTimeDesc(Pageable pageable, Character type);
     Page<Board> findALlByTitleContainingOrderByCreatedTimeDesc(Pageable pageable, String keyword);
+    Page<Board> findAllByUploaderOrderByCreatedTimeDesc(Pageable pageable, AppUser appuser);
 }
