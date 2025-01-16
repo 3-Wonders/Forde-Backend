@@ -7,8 +7,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.HashOperations;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.stereotype.Component;
 
 @RequiredArgsConstructor
+@Component
 public class GetCookie {
 
     private final RedisTemplate<String, Object> redisTemplate;

@@ -37,13 +37,13 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AppUserService {
     private final AppUserRepository appUserRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
     private final InterestTagRepository interestTagRepository;
     private final TagRepository tagRepository;
     private final SnsRepository snsRepository;
     private final BoardRepository boardRepository;
     private final BoardTagRepository boardTagRepository;
     private final BoardService boardService;
+    private final GetCookie getCookie;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
         AppUser user = appUserRepository.findById(userId)
@@ -53,7 +53,6 @@ public class AppUserService {
     }
 
     public AppUserDto.Response.Intro getIntroUser(HttpServletRequest request) {
-        GetCookie getCookie = new GetCookie(redisTemplate);
         Long userId = getCookie.getUserId(request);
 
         AppUser user = appUserRepository.findByUserId(userId)
@@ -63,7 +62,6 @@ public class AppUserService {
     }
 
     public AppUserDto.Response.myInfo getMyInfo(HttpServletRequest request) {
-        GetCookie getCookie = new GetCookie(redisTemplate);
         Long userId = getCookie.getUserId(request);
 
         AppUser appUser = appUserRepository.findByUserId(userId)
@@ -80,7 +78,6 @@ public class AppUserService {
     }
 
     public AppUserDto.Response.account getAccount(HttpServletRequest request) {
-        GetCookie getCookie = new GetCookie(redisTemplate);
         Long userId = getCookie.getUserId(request);
 
         AppUser appUser = appUserRepository.findByUserId(userId)
@@ -183,15 +180,6 @@ public class AppUserService {
         newAppUser.setProfilePath(profilePath);
         appUserRepository.save(newAppUser);
         return newAppUser;
-    }
-
-    public Long getRedisUserId(HttpServletRequest request) {
-        GetCookie getCookie = new GetCookie(redisTemplate);
-        Long userId = getCookie.getUserId(request);
-        System.out.println("userId : " +  userId);
-        System.out.println("session : " + request.getSession());
-        System.out.println("sessionId : " + request.getSession().getId());
-        return userId;
     }
 
 }
