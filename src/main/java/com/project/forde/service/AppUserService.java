@@ -44,6 +44,8 @@ public class AppUserService {
     private final BoardTagRepository boardTagRepository;
     private final BoardService boardService;
     private final GetCookie getCookie;
+    private final MailService mailService;
+    private final RedisTemplate<String, String> redisTemplate;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
         AppUser user = appUserRepository.findById(userId)
@@ -120,7 +122,7 @@ public class AppUserService {
         return appUsers.stream().map(AppUserMapper.INSTANCE::toResponseSearchNicknameDto).toList();
     }
 
-    public void createAppUser(AppUserDto.Request request) {
+    public void createAppUser(AppUserDto.Request.signup request) {
         Optional<AppUser> appUser = appUserRepository.findByEmail(request.getEmail());
 
         if (appUser.isPresent()) { // 이메일 중복
@@ -180,6 +182,20 @@ public class AppUserService {
         newAppUser.setProfilePath(profilePath);
         appUserRepository.save(newAppUser);
         return newAppUser;
+    }
+
+    public void updatePassword(AppUserDto.Request.updatePassword dto, HttpServletRequest request) {
+        mailService.compareRandomKey(dto.getRandomKey(), request);
+
+        Long userId = getCookie.getUserId(request);
+        AppUser appUser = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        appUser.setUserPw(PasswordUtils.encodePassword(dto.getPassword()));
+
+        appUserRepository.save(appUser);
+
+        redisTemplate.delete("email:randomKey:" + userId);
     }
 
 }

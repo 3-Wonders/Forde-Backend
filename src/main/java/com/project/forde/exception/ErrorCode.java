@@ -29,6 +29,7 @@ public enum ErrorCode {
     NOT_MATCHED_BOARD_UPLOADER(HttpStatus.FORBIDDEN, "게시글 작성자가 아닙니다.", "F40305"),
     NOT_MATCHED_COMMENT_UPLOADER(HttpStatus.FORBIDDEN, "댓글 작성자가 아닙니다.", "F40306"),
     NOT_MATCHED_DRAFT(HttpStatus.FORBIDDEN, "임시 저장을 한 작성자가 아닙니다.", "F40307"),
+    NOT_MATCHED_RANDOM_KEY(HttpStatus.FORBIDDEN, "랜덤키가 일치하지 않습니다.", "F40310"),
 
     NOT_FOUND_USER(HttpStatus.NOT_FOUND, "사용자가 존재하지 않습니다.", "N40401"),
     NOT_FOUND_VERIFIED_EMAIL(HttpStatus.NOT_FOUND, "인증을 요청한 이메일이 존재하지 않습니다.", "N40402"),

@@ -1,18 +1,15 @@
 package com.project.forde.controller;
 
 import com.project.forde.dto.RequestLoginDto;
-import com.project.forde.dto.RequestMailCompareDto;
-import com.project.forde.dto.RequestMailDto;
+import com.project.forde.dto.mail.MailDto;
 import com.project.forde.dto.RequestUpdateProfileDto;
 import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.service.AppUserService;
 import com.project.forde.service.MailService;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -40,7 +37,7 @@ public class AppUserController {
     }
 
     @PostMapping(value = "")
-    public ResponseEntity<?> create(@Valid @RequestBody AppUserDto.Request dto) {
+    public ResponseEntity<?> create(@Valid @RequestBody AppUserDto.Request.signup dto) {
         appUserService.createAppUser(dto);
         return ResponseEntity.noContent().build();
     }
@@ -56,18 +53,36 @@ public class AppUserController {
     }
 
     @PostMapping(value = "/verify")
-    public ResponseEntity<?> sendEmail(@Valid @RequestBody RequestMailDto dto) {
+    public ResponseEntity<?> sendEmail(@Valid @RequestBody MailDto.Request.send dto) {
         mailService.sendEmail(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/verify/compare")
-    public ResponseEntity<?> compareEmail(@RequestBody RequestMailCompareDto dto, final HttpServletRequest request) {
+    public ResponseEntity<?> compareEmail(@RequestBody MailDto.Request.compareVerifyCode dto, final HttpServletRequest request) {
         Long userId = mailService.compareEmail(dto);
         final HttpSession session = request.getSession();
 
         session.setAttribute("userId", userId);
 
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/verify/compare/password")
+    public ResponseEntity<?> compareEmailPassword(@RequestBody MailDto.Request.compareVerifyCode dto, final HttpServletRequest request) {
+        mailService.compareEmailPassword(dto, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/password/randomkey")
+    public ResponseEntity<?> compareRandomKey(@RequestBody MailDto.Request.compareRandomKey dto, final HttpServletRequest request) {
+        mailService.compareRandomKey(dto.getRandomKey(), request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping(value = "/password")
+    public ResponseEntity<?> updatePassword(@RequestBody AppUserDto.Request.updatePassword dto, final HttpServletRequest request) {
+        appUserService.updatePassword(dto, request);
         return ResponseEntity.noContent().build();
     }
 
@@ -90,10 +105,6 @@ public class AppUserController {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getMyInfo(request));
     }
 
-    @GetMapping("/sample")
-    public ResponseEntity<?> sampleTest(HttpServletRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getRedisUserId(request));
-    }
 
     @GetMapping("account")
     public ResponseEntity<?> getAccount(final HttpServletRequest request) {

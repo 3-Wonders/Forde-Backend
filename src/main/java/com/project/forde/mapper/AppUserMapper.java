@@ -20,7 +20,7 @@ public interface AppUserMapper {
     @Mapping(source = "request.password", target = "userPw")
     @Mapping(source = "request.isEnableNotification", target = "noticeNotification")
     @Mapping(source = "request.isEnableEvent", target = "eventNotification")
-    AppUser toEntity(AppUserDto.Request request);
+    AppUser toEntity(AppUserDto.Request.signup request);
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
