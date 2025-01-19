@@ -63,8 +63,8 @@ public class Notification {
     @Formula(value = "(SELECT " +
                         "CASE WHEN EXISTS " +
                             "(" +
-                                "SELECT 1 FROM notification_read nr" +
-                                    "WHERE nr.notification_id = notification_id AND nr.user_id = receiver_id" +
+                                "SELECT 1 FROM notification_read nr " +
+                                    "WHERE nr.notification_id = notification_id AND nr.reader_id = receiver_id" +
                             ") " +
                         "THEN true ELSE false " +
                         "END)")

@@ -3,7 +3,9 @@ package com.project.forde.entity;
 
 import com.project.forde.entity.composite.NotificationReadPK;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -11,6 +13,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.LocalDateTime;
 
 @Getter
+@NoArgsConstructor
 @Entity
 @Table(name = "notification_read")
 public class NotificationRead {
@@ -20,4 +23,9 @@ public class NotificationRead {
     @CreationTimestamp
     @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdTime;
+
+    @Builder
+    public NotificationRead(NotificationReadPK notificationReadPK) {
+        this.notificationReadPK = notificationReadPK;
+    }
 }

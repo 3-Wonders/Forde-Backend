@@ -1,33 +1,38 @@
 package com.project.forde.service;
 
-import com.project.forde.entity.AppUser;
-import com.project.forde.entity.Board;
-import com.project.forde.entity.Comment;
-import com.project.forde.entity.Notification;
+import com.project.forde.dto.notification.NotificationDto;
+import com.project.forde.entity.*;
+import com.project.forde.entity.composite.NotificationReadPK;
 import com.project.forde.mapper.NotificationMapper;
+import com.project.forde.repository.NotificationReadRepository;
 import com.project.forde.repository.NotificationRepository;
 import com.project.forde.repository.SseRepository;
 import com.project.forde.type.NotificationTypeEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@Transactional(readOnly = true)
 public class NotificationService {
     private static final Long TIME_OUT = 30L * 60L * 1000L;
 
     private final SseRepository sseRepository;
     private final NotificationRepository notificationRepository;
+    private final NotificationReadRepository notificationReadRepository;
 
     private final AppUserService appUserService;
 
@@ -44,6 +49,24 @@ public class NotificationService {
         }
 
         return emitter;
+    }
+
+    public NotificationDto.Response.Notifications getNotifications(int page, int count) {
+        // TODO: User ID를 27로 고정하고 있으니, 추후 수정이 필요합니다.
+        AppUser user = appUserService.verifyUserAndGet(27L);
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+        Page<Notification> pages = notificationRepository.findAllByReceiverOrderByNotificationIdDesc(pageable, user);
+
+        List<Notification> notifications = pages.getContent();
+        List<NotificationDto.Response.Notification> response = notifications.stream().map(
+                notification -> NotificationMapper.INSTANCE.toNotificationDto(
+                        notification,
+                        getMessage(notification)
+                )
+        ).toList();
+        Long total = pages.getTotalElements();
+
+        return new NotificationDto.Response.Notifications(response, total);
     }
 
     public void sendEmitter(SseEmitter emitter, String eventId, String emitterId, Object data) {
@@ -66,6 +89,41 @@ public class NotificationService {
             log.error("Error in sendEmitter", e);
             sseRepository.deleteById(emitterId);
         }
+    }
+
+    @Transactional
+    public void readNotification(List<Long> notificationIds) {
+        AppUser user = appUserService.verifyUserAndGet(27L);
+        List<NotificationRead> alreadyReads = notificationReadRepository
+                .findAllByNotificationReadPK_ReaderAndNotificationReadPK_NotificationNotificationIdIn(
+                                user,
+                                notificationIds
+                        );
+
+        List<Long> excludeIds = alreadyReads.stream()
+                .map(notificationRead -> notificationRead.getNotificationReadPK().getNotification().getNotificationId())
+                .toList();
+
+        List<Notification> notifications = notificationRepository.findAllById(notificationIds);
+        // 이미 읽은 알림은 제외하고, 읽지 않은 알림만 읽은 알림으로 저장합니다.
+        List<NotificationRead> createReads = notifications.stream()
+                .filter(notification -> !excludeIds.contains(notification.getNotificationId()))
+                .map(notification -> NotificationRead.builder()
+                        .notificationReadPK(NotificationReadPK.builder()
+                                .reader(user)
+                                .notification(notification)
+                                .build())
+                        .build()
+                )
+                .toList();
+
+        if (createReads.isEmpty()) {
+            log.warn("No new notification to read : " +
+                    "user_id = {}, notification_ids = {}", user.getUserId(), notificationIds);
+            return;
+        }
+
+        notificationReadRepository.saveAll(createReads);
     }
 
     private boolean hasLostData(String lastEventId) {
@@ -123,8 +181,13 @@ public class NotificationService {
      * @param comment 댓글 (댓글, 좋아요, 언급 등의 경우)
      */
     @Async
-    public void sendNotification(AppUser sender, AppUser receiver, NotificationTypeEnum type, Board board, Comment comment) {
-        if (sender.getUserId().equals(receiver.getUserId())) {
+    public void sendNotification(
+            @Nullable AppUser sender,
+            AppUser receiver,
+            NotificationTypeEnum type,
+            @Nullable Board board,
+            @Nullable Comment comment) {
+        if (sender != null && sender.getUserId().equals(receiver.getUserId())) {
             return;
         }
 
@@ -146,7 +209,12 @@ public class NotificationService {
         });
     }
 
-    private Notification createNotification(AppUser sender, AppUser receiver, NotificationTypeEnum type, Board board, Comment comment) {
+    private Notification createNotification(
+            @Nullable AppUser sender,
+            AppUser receiver,
+            NotificationTypeEnum type,
+            @Nullable Board board,
+            @Nullable Comment comment) {
         return Notification.builder()
                 .notificationType(type.getType())
                 .sender(sender)
