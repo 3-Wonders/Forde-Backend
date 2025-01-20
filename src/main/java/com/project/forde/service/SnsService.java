@@ -105,7 +105,13 @@ public class SnsService extends DefaultOAuth2UserService {
         }
         // 로그인일 경우
         else {
-            return sns.get().getAppUser().getUserId();
+            Long userId = sns.get().getAppUser().getUserId();
+            AppUser appUser = appUserRepository.findByUserId(userId)
+                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+            if(appUser.getDeleted()) {
+                throw new CustomException(ErrorCode.DELETED_USER);
+            }
+            return userId;
         }
     }
 

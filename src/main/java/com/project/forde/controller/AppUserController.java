@@ -140,4 +140,10 @@ public class AppUserController {
         appUserService.updateMyInfo(dto, request);
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping(value = "")
+    public ResponseEntity<?> removeUser(final HttpServletRequest request) {
+        appUserService.removeUser(request);
+        return ResponseEntity.noContent().build();
+    }
 }

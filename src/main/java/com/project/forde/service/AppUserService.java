@@ -183,6 +183,10 @@ public class AppUserService {
         AppUser user = appUserRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
+        if(user.getDeleted()) {
+            throw new CustomException(ErrorCode.DELETED_USER);
+        }
+
         if(!PasswordUtils.checkPassword(dto.getPassword(), user.getUserPw())) {
             throw new CustomException(ErrorCode.NOT_MATCHED_LOGIN_INFO);
         }
@@ -249,5 +253,16 @@ public class AppUserService {
         appUser.setRecommendNotification(dto.getRecommendNotification());
         appUser.setEventNotification(dto.getEventNotification());
         appUserRepository.save(appUser);
+    }
+
+    public void removeUser(HttpServletRequest request) {
+        Long userId = getCookie.getUserId(request);
+
+        AppUser appUser = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        appUser.setDeleted(true);
+        appUserRepository.save(appUser);
+        request.getSession().invalidate();
     }
 }
