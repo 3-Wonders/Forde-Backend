@@ -3,6 +3,7 @@ package com.project.forde.entity;
 import com.project.forde.entity.composite.InterestTagPK;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -10,6 +11,7 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.LocalDateTime;
 
 @Getter
+@Setter
 @Entity
 @Table(name = "interest_tag")
 public class InterestTag {

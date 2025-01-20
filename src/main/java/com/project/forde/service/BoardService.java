@@ -54,7 +54,7 @@ public class BoardService {
             Tag tag = boardTag.getBoardTagPK().getTag();
             tagMap.put(boardTag.getBoardTagPK().getBoard().getBoardId(), tag);
         });
-
+  
         List<BoardDto.Response.Boards.Board> mappingBoards = boards.getContent().stream().map(board -> {
             List<Tag> tags = tagMap.get(board.getBoardId());
             List<TagDto.Response.TagWithoutCount> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
