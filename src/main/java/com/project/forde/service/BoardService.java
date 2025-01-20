@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,6 +82,14 @@ public class BoardService {
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
         Page<Board> boards = boardRepository.findALlByTitleContainingOrderByCreatedTimeDesc(pageable, keyword);
 
+        return createBoardsDto(boards);
+    }
+
+    public BoardDto.Response.Boards getFollowingNews(final int page, final int count, @Nullable final Character type) {
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+
+        // TODO : UserId가 27L로 고정되었으므로, 추후에 수정 필요
+        Page<Board> boards = boardRepository.findAllByCategoryAndFollowingOrderByBoardIdDesc(pageable, 27L, type);
         return createBoardsDto(boards);
     }
 

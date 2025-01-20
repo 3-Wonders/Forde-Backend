@@ -32,10 +32,14 @@ public class NotificationController {
         return ResponseEntity.ok(notificationService.getNotifications(page, count));
     }
 
+    @GetMapping("/following/count")
+    public ResponseEntity<?> getFollowingPostsCount() {
+        return ResponseEntity.ok(notificationService.getFollowingPostsCount());
+    }
+
     @PostMapping
     public ResponseEntity<?> readNotification(@Valid @RequestBody NotificationDto.Request.ReadNotification request) {
         notificationService.readNotification(request.getNotificationIds());
         return ResponseEntity.noContent().build();
     }
-
 }

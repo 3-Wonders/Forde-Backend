@@ -2,6 +2,7 @@ package com.project.forde.controller;
 
 import com.project.forde.dto.board.BoardDto;
 import com.project.forde.service.BoardService;
+import com.project.forde.type.BoardTypeEnum;
 import com.project.forde.type.SortBoardTypeEnum;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -68,9 +69,24 @@ public class BoardController {
         return ResponseEntity.ok(boardService.getUpdatePost(1L, boardId));
     }
 
+    @GetMapping("/board/following")
+    public ResponseEntity<?> getFollowingNews(
+            @RequestParam(value = "type", required = false, defaultValue = "A") Character type,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        boolean isType = BoardTypeEnum.findByType(type) != null;
+
+        if (!isType) {
+            type = null;
+        }
+
+        return ResponseEntity.ok(boardService.getFollowingNews(page, count, type));
+    }
+
     @PostMapping(value = "/board", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createBoard(@Valid @ModelAttribute final BoardDto.Request.Create request) {
-        Long boardId = boardService.create(1L, request);
+        Long boardId = boardService.create(29L, request);
         return ResponseEntity.created(URI.create("/" + boardId)).build();
     }
 

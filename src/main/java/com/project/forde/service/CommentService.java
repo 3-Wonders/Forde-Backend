@@ -71,6 +71,8 @@ public class CommentService {
         Comment createdComment = createComment(user, board, null, request);
 
         appUserService.increaseCount(user, AppUserCount.COMMENT_COUNT);
+        board.setCommentCount(board.getCommentCount() + 1);
+        boardRepository.save(board);
 
         mentionService.create(
                 userId,
@@ -100,6 +102,8 @@ public class CommentService {
         Comment createdComment = createComment(user, board, parentComment, request);
 
         appUserService.increaseCount(user, AppUserCount.COMMENT_COUNT);
+        board.setCommentCount(board.getCommentCount() + 1);
+        boardRepository.save(board);
 
         mentionService.create(
                 userId,

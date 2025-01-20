@@ -69,6 +69,12 @@ public class NotificationService {
         return new NotificationDto.Response.Notifications(response, total);
     }
 
+    public Long getFollowingPostsCount() {
+        // TODO: User ID를 27로 고정하고 있으니, 추후 수정이 필요합니다.
+        AppUser user = appUserService.verifyUserAndGet(27L);
+        return 1L;
+    }
+
     public void sendEmitter(SseEmitter emitter, String eventId, String emitterId, Object data) {
         if (data instanceof Notification notification) {
             String message = getMessage(notification);

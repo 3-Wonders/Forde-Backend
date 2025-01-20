@@ -13,4 +13,14 @@ public enum BoardTypeEnum {
     BoardTypeEnum(Character type) {
         this.type = type;
     }
+
+    public static Character findByType(Character type) {
+        for (BoardTypeEnum boardTypeEnum : values()) {
+            if (boardTypeEnum.getType().toString().equals(type.toString().toUpperCase())) {
+                return boardTypeEnum.getType();
+            }
+        }
+
+        return null;
+    }
 }

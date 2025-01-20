@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.lang.Nullable;
 
 import java.util.Optional;
 
@@ -17,6 +18,19 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findAllByOrderByCreatedTimeDesc(Pageable pageable);
     Page<Board> findAllByCategoryOrderByCreatedTimeDesc(Pageable pageable, Character type);
     Page<Board> findALlByTitleContainingOrderByCreatedTimeDesc(Pageable pageable, String keyword);
+
+    @Query(
+            value = "SELECT b FROM Board b " +
+                    "JOIN FETCH b.uploader u " +
+                    "WHERE b.uploader.userId IN (" +
+                        "SELECT f.followPK.following.userId " +
+                        "FROM Follow f " +
+                        "WHERE f.followPK.follower.userId = :userId" +
+                    ") " +
+                    "AND (:type IS NULL OR b.category = :type) " +
+                    "ORDER BY b.boardId DESC"
+    )
+    Page<Board> findAllByCategoryAndFollowingOrderByBoardIdDesc(Pageable pageable, Long userId, @Nullable Character type);
 
     @Query(
             value = "SELECT b FROM Board b " +
