@@ -1,5 +1,6 @@
 package com.project.forde.dto.appuser;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
 import jakarta.validation.constraints.NotBlank;
@@ -43,6 +44,38 @@ public class AppUserDto {
 
             @NotBlank(message = "랜덤키를 입력해주세요.")
             private String randomKey;
+        }
+
+        @Getter
+        public static class updateSocialSetting {
+            @NotNull(message = "팔로우 차단 여부를 체크해주세요.")
+            private Boolean disableFollow;
+            @NotNull(message = "비공개 계정 여부를 체크해주세요.")
+            private Boolean disableAccount;
+        }
+
+        @Getter
+        public static class updateNotificationSetting {
+            @NotNull(message = "공지 알림 여부를 체크해주세요.")
+            private Boolean noticeNotification;
+            @NotNull(message = "댓글 알림 여부를 체크해주세요.")
+            private Boolean commentNotification;
+            @NotNull(message = "좋아요 알림 여부를 체크해주세요.")
+            private Boolean likeNotification;
+            @NotNull(message = "추천 뉴스/게시글 알림 여부를 체크해주세요.")
+            private Boolean recommendNotification;
+            @NotNull(message = "팔로우한 사람의 뉴스/게시글 알림 여부를 체크해주세요.")
+            private Boolean followNotification;
+            @NotNull(message = "이벤트 알림 여부를 체크해주세요.")
+            private Boolean eventNotification;
+        }
+
+        @Getter
+        public static class updateMyInfo {
+            @Size(max = 10, message = "닉네임은 10자 이하여야 합니다.")
+            private String nickname;
+            private String description;
+            private List<Long> interestTags;
         }
 
     }

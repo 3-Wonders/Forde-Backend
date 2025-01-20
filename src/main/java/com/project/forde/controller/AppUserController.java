@@ -6,6 +6,7 @@ import com.project.forde.dto.RequestUpdateProfileDto;
 import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.service.AppUserService;
 import com.project.forde.service.MailService;
+import com.project.forde.util.GetCookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -13,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class AppUserController {
     private final AppUserService appUserService;
     private final MailService mailService;
+    private final GetCookie getCookie;
 
     @GetMapping("/{user_id}")
     public ResponseEntity<?> getOtherUser(@PathVariable(value = "user_id") Long userId) {
@@ -118,5 +121,23 @@ public class AppUserController {
             @RequestParam(value = "count", required = false, defaultValue = "5") final int count
     ) {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getSearchUserNickname(page, count, nickname));
+    }
+
+    @PatchMapping(value = "/sns/setting")
+    public ResponseEntity<?> updateSocialSetting(@RequestBody @Valid AppUserDto.Request.updateSocialSetting dto, final HttpServletRequest request) {
+        appUserService.updateSocialSetting(dto, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping(value = "/notification")
+    public ResponseEntity<?> updateNotificationSetting(@RequestBody @Valid AppUserDto.Request.updateNotificationSetting dto, final HttpServletRequest request) {
+        appUserService.updateNotificationSetting(dto, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping(value = "")
+    public ResponseEntity<?> updateMyInfo(@RequestBody @Valid AppUserDto.Request.updateMyInfo dto, final HttpServletRequest request) {
+        appUserService.updateMyInfo(dto, request);
+        return ResponseEntity.noContent().build();
     }
 }

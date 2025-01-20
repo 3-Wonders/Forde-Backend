@@ -7,10 +7,12 @@ import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
+import com.project.forde.entity.composite.InterestTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.AppUserMapper;
 import com.project.forde.mapper.BoardMapper;
+import com.project.forde.mapper.InterestTagMapper;
 import com.project.forde.mapper.TagMapper;
 import com.project.forde.repository.*;
 import com.project.forde.type.SocialTypeEnum;
@@ -25,10 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -122,6 +121,33 @@ public class AppUserService {
         return appUsers.stream().map(AppUserMapper.INSTANCE::toResponseSearchNicknameDto).toList();
     }
 
+    public void updateMyInfo(AppUserDto.Request.updateMyInfo dto, HttpServletRequest request) {
+        Long userId = getCookie.getUserId(request);
+        AppUser appUser = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        appUser.setNickname(dto.getNickname());
+        appUser.setDescription(dto.getDescription());
+        appUserRepository.save(appUser);
+
+        List<Tag> tags = tagRepository.findAllByTagIdIn(dto.getInterestTags());
+
+        List<InterestTag> userInterestTag = interestTagRepository.findAllById_AppUser(appUser);
+        interestTagRepository.deleteAll(userInterestTag);
+        List<InterestTag> newInterestTag = new ArrayList<>();
+
+        for (Tag tag : tags) {
+            InterestTagPK interestTagPK = InterestTagMapper.INSTANCE.toPK(tag, appUser);
+
+            InterestTag interestTag = new InterestTag();
+            interestTag.setId(interestTagPK);
+
+            newInterestTag.add(interestTag);
+        }
+
+        interestTagRepository.saveAll(newInterestTag);
+    }
+
     public void createAppUser(AppUserDto.Request.signup request) {
         Optional<AppUser> appUser = appUserRepository.findByEmail(request.getEmail());
 
@@ -198,4 +224,30 @@ public class AppUserService {
         redisTemplate.delete("email:randomKey:" + userId);
     }
 
+    public void updateSocialSetting(AppUserDto.Request.updateSocialSetting dto, HttpServletRequest request) {
+        Long userId = getCookie.getUserId(request);
+
+        AppUser appUser = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        appUser.setDisableFollow(dto.getDisableFollow());
+        appUser.setPrivateAccount(dto.getDisableAccount());
+
+        appUserRepository.save(appUser);
+    }
+
+    public void updateNotificationSetting(AppUserDto.Request.updateNotificationSetting dto, HttpServletRequest request) {
+        Long userId = getCookie.getUserId(request);
+
+        AppUser appUser = appUserRepository.findByUserId(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        appUser.setNoticeNotification(dto.getNoticeNotification());
+        appUser.setCommentNotification(dto.getCommentNotification());
+        appUser.setLikeNotification(dto.getLikeNotification());
+        appUser.setFollowNotification(dto.getFollowNotification());
+        appUser.setRecommendNotification(dto.getRecommendNotification());
+        appUser.setEventNotification(dto.getEventNotification());
+        appUserRepository.save(appUser);
+    }
 }

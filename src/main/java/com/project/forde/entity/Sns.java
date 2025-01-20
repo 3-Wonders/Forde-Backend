@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @DynamicUpdate
 public class Sns {
     @Id
-    @Column(name = "sns_id", unique = true, nullable = false)
+    @Column(name = "sns_id", nullable = false)
     private String snsId; // snsID
 
     @OnDelete(action = OnDeleteAction.CASCADE)

@@ -60,7 +60,7 @@ public class WebSecurityConfig {
                 OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
                 String socialType = ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
 
-                Long checkAuth = snsService.socialAuth(oAuth2User, socialType);
+                Long checkAuth = snsService.socialAuth(oAuth2User, socialType, request);
 
                 if(checkAuth != null) {
                     request.getSession().setAttribute("userId", checkAuth);
@@ -70,10 +70,10 @@ public class WebSecurityConfig {
                 response.sendRedirect(redirectUrl);
 
             }
-            catch (Exception e) {
-                System.out.println("예외 발생 : " + e.getMessage());
+            catch (CustomException e) {
+                System.out.println("예외 발생 : " + e.getErrorCode().getMessage());
                 request.getSession().invalidate();
-                String encodedMessage = URLEncoder.encode(e.getMessage(), StandardCharsets.UTF_8);
+                String encodedMessage = URLEncoder.encode(e.getErrorCode().getMessage(), StandardCharsets.UTF_8);
                 String errorRedirectUrl = "http://localhost:5173/callback?success=false&message=" + encodedMessage;
                 response.sendRedirect(errorRedirectUrl);
             }
