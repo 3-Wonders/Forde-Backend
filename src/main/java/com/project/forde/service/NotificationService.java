@@ -7,6 +7,7 @@ import com.project.forde.mapper.NotificationMapper;
 import com.project.forde.repository.NotificationReadRepository;
 import com.project.forde.repository.NotificationRepository;
 import com.project.forde.repository.SseRepository;
+import com.project.forde.type.BoardTypeEnum;
 import com.project.forde.type.NotificationTypeEnum;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -69,10 +70,24 @@ public class NotificationService {
         return new NotificationDto.Response.Notifications(response, total);
     }
 
-    public Long getFollowingPostsCount() {
+    public NotificationDto.Response.FollowingUnReadCount getFollowingPostsCount() {
         // TODO: User ID를 27로 고정하고 있으니, 추후 수정이 필요합니다.
         AppUser user = appUserService.verifyUserAndGet(27L);
-        return 1L;
+        Long unReadCount = notificationReadRepository.countByUnReadNotification(user.getUserId(), new String[]{
+                NotificationTypeEnum.FOLLOWING_POST.getType(),
+        }, BoardTypeEnum.N.getType());
+
+        return new NotificationDto.Response.FollowingUnReadCount(unReadCount);
+    }
+
+    public NotificationDto.Response.FollowNewPost hasNewFollowingPost() {
+        // TODO: User ID를 27로 고정하고 있으니, 추후 수정이 필요합니다.
+        AppUser user = appUserService.verifyUserAndGet(27L);
+        Boolean hasNewPosts = notificationReadRepository.countByUnReadNotification(user.getUserId(), new String[]{
+                NotificationTypeEnum.FOLLOWING_POST.getType(),
+        }, null) > 0;
+
+        return new NotificationDto.Response.FollowNewPost(hasNewPosts);
     }
 
     public void sendEmitter(SseEmitter emitter, String eventId, String emitterId, Object data) {

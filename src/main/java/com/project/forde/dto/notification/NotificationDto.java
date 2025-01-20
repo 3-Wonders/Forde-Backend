@@ -35,5 +35,17 @@ public class NotificationDto {
             List<Notification> notifications;
             Long total;
         }
+
+        @Getter
+        @AllArgsConstructor
+        public static class FollowingUnReadCount {
+            private Long unReadCount;
+        }
+
+        @Getter
+        @AllArgsConstructor
+        public static class FollowNewPost {
+            private Boolean hasNewPosts;
+        }
     }
 }
