@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.DynamicInsert;
 
 import java.time.LocalDateTime;
 
@@ -11,6 +12,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "app_user")
+@DynamicInsert
 public class AppUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +22,7 @@ public class AppUser {
     @Column(name = "user_pw", nullable = false, length = 300)
     private String userPw; // 사용자PW => 암호화 => SNS 로그인 시 필요x
 
-    @Column(name = "email", nullable = false, unique = true, length = 60)
+    @Column(name = "email", unique = true, length = 60)
     private String email; // 이메일
 
     @Column(name = "profile_path", length = 200)
@@ -32,7 +34,7 @@ public class AppUser {
     @Column(name = "profile_type", length = 20)
     private String profileType; // 프로필 사진 유형 ex) png, jpeg, xml, svg 등
 
-    @Column(name = "nickname", length = 10, nullable = false, unique = true)
+    @Column(name = "nickname", length = 30, nullable = false)
     private String nickname; // 닉네임
 
     @Column(name = "description", length = 40)
@@ -82,6 +84,9 @@ public class AppUser {
 
     @Column(name = "is_deleted", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private Boolean deleted; //계정 삭제 상태
+
+    @Column(name = "is_verified", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private Boolean verified;
 
     @Column(name = "deleted_time")
     private LocalDateTime deletedTime; //삭제된 시간

@@ -32,7 +32,7 @@ public class BoardService {
 
     private final FileStore fileStore;
 
-    private BoardDto.Response.Boards createBoardsDto(Page<Board> boards) {
+    public BoardDto.Response.Boards createBoardsDto(Page<Board> boards) {
         List<BoardDto.Response.Boards.Board> mappingBoards = boards.getContent().stream().map(board -> {
             List<BoardTag> boardTags = boardTagRepository.findAllByBoard(board);
             List<Tag> tags = boardTags.stream().map(BoardTag::getTag).toList();
