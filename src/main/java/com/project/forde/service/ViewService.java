@@ -3,6 +3,7 @@ package com.project.forde.service;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Board;
 import com.project.forde.entity.BoardView;
+import com.project.forde.entity.composite.BoardViewPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.ViewMapper;
@@ -18,19 +19,20 @@ import org.springframework.stereotype.Service;
 public class ViewService {
     private final ViewRepository viewRepository;
     private final BoardRepository boardRepository;
-    private final AppUserRepository appUserRepository;
+
+    private final AppUserService appUserService;
 
     @Transactional
     public void createView(Long userId, Long boardId) {
-        AppUser user = appUserRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser user = appUserService.verifyUserAndGet(userId);
         Board board = boardRepository.findById(boardId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
-        BoardView boardView = viewRepository.findByUserAndBoard(user, board).orElse(null);
+        BoardView boardView = viewRepository.findByBoardViewPK(new BoardViewPK(user, board)).orElse(null);
 
         if (boardView == null) {
             board.setViewCount(board.getViewCount() + 1);
 
             boardRepository.save(board);
-            viewRepository.save(ViewMapper.INSTANCE.toEntity(user, board));
+            viewRepository.save(ViewMapper.INSTANCE.toEntity(new BoardViewPK(user, board)));
         }
     }
 }

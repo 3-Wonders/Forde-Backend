@@ -1,28 +1,23 @@
-package com.project.forde.dummy;
+package com.project.forde.boardImage;
 
-import com.project.forde.controller.DummyImageController;
-import com.project.forde.service.DummyImageService;
+import com.project.forde.controller.BoardImageController;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @Slf4j
-@WebMvcTest(DummyImageController.class)
+@WebMvcTest(BoardImageController.class)
 @AutoConfigureMockMvc
-public class DummyImageControllerTest {
+public class BoardImageControllerTest {
     @Autowired
     private MockMvc mockMvc;
-
-    @MockBean
-    private DummyImageService dummyImageService;
 
     @Test
     @DisplayName("더미 이미지 추가")

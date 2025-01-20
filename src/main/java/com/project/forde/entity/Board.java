@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "board")
 @DynamicInsert
+@DynamicUpdate
 public class Board {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +28,7 @@ public class Board {
     private AppUser uploader;
 
     @Column(name = "category", nullable = false, columnDefinition = "CHAR", length = 1)
-    private Character category; //게시글(B) / 뉴스(N)
+    private Character category;
 
     @Column(name = "title", nullable = false, length = 20)
     private String title;
@@ -37,7 +38,7 @@ public class Board {
     private String content; // HTML이 저장됨
 
     @Column(name = "thumbnail_path", length = 100)
-    private String thumbnailPath; //썸네일
+    private String thumbnailPath;
 
     @Column(name = "thumbnail_type", length = 20)
     private String thumbnailType;
@@ -58,9 +59,8 @@ public class Board {
     @Column(name = "created_time", nullable = false, columnDefinition = "CURRENT_TIMESTAMP")
     private LocalDateTime createdTime; //생성된 시간
 
-    @CreationTimestamp
-    @Column(name = "updated_time", nullable = false, columnDefinition = "CURRENT_TIMESTAMP")
-    private LocalDateTime updatedTime; //업데이트 시간
+    @Column(name = "updated_time")
+    private LocalDateTime updatedTime;
 
     @Formula(value = "(SELECT " +
                             "CASE WHEN EXISTS " +

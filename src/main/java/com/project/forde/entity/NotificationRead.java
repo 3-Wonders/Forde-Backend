@@ -1,8 +1,11 @@
 
 package com.project.forde.entity;
 
+import com.project.forde.entity.composite.NotificationReadPK;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
@@ -10,25 +13,19 @@ import org.hibernate.annotations.OnDeleteAction;
 import java.time.LocalDateTime;
 
 @Getter
+@NoArgsConstructor
 @Entity
 @Table(name = "notification_read")
 public class NotificationRead {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "read_id", unique = true, nullable = false, columnDefinition = "INT UNSIGNED AUTO_INCREMENT")
-    private Long readId;
-
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "notification_id", nullable = false, columnDefinition = "INT UNSIGNED")
-    private Notification notification;
-
-    @OnDelete(action = OnDeleteAction.SET_NULL)
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "reader_id", columnDefinition = "INT UNSIGNED")
-    private AppUser reader;
+    @EmbeddedId
+    private NotificationReadPK notificationReadPK;
 
     @CreationTimestamp
     @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdTime; //생성된 시간
+    private LocalDateTime createdTime;
+
+    @Builder
+    public NotificationRead(NotificationReadPK notificationReadPK) {
+        this.notificationReadPK = notificationReadPK;
+    }
 }

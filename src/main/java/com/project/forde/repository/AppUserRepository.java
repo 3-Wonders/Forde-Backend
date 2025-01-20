@@ -12,5 +12,8 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
     Optional<AppUser> findByUserId(Long userId);
     Optional<AppUser> findByEmail(String email);
     Optional<AppUser> findByNickname(String nickname);
+  
+    List<AppUser> findAllByUserIdIn(List<Long> userId);
+    
     Page<AppUser> findAllByNicknameContaining(Pageable pageable, String nickname);
 }

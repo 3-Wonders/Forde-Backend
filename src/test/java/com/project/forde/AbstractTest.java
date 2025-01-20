@@ -1,6 +1,8 @@
 package com.project.forde;
 
 import com.project.forde.entity.*;
+import com.project.forde.entity.composite.BoardLikePK;
+import com.project.forde.entity.composite.BoardTagPK;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +24,7 @@ public class AbstractTest {
     private final Tag tag = Tag.builder()
             .tagName("tag")
             .build();
-    private final DummyImage dummyImage = DummyImage.builder()
+    private final BoardImage boardImage = BoardImage.builder()
             .imageSize(1024L)
             .imageType("image/jpeg")
             .imagePath("test.jpg")
@@ -70,9 +72,7 @@ public class AbstractTest {
         board.setIsLike(false);
         board.setCreatedTime(LocalDateTime.now());
 
-        boardLike.setLikeId(1L);
-        boardLike.setBoard(board);
-        boardLike.setUser(appUser);
+        boardLike.setBoardLikePK(new BoardLikePK(appUser, board));
         boardLike.setCreatedTime(LocalDateTime.now());
 
         tag.setTagCount(0L);

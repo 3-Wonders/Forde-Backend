@@ -1,12 +1,12 @@
 package com.project.forde.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "draft")
+@NoArgsConstructor
 @DynamicInsert
 public class Draft {
     @Id
@@ -26,10 +27,14 @@ public class Draft {
     @JoinColumn(name = "uploader_id", nullable = false, columnDefinition = "INT UNSIGNED")
     private AppUser uploader;
 
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "thumbnail_id", columnDefinition = "INT UNSIGNED")
-    private DummyImage thumbnail;
+    @Column(name = "thumbnail_path", length = 100)
+    private String thumbnailPath;
+
+    @Column(name = "thumbnail_type", length = 20)
+    private String thumbnailType;
+
+    @Column(name = "thumbnail_size", columnDefinition = "INT UNSIGNED")
+    private Long thumbnailSize;
 
     @Column(name = "category", nullable = false, columnDefinition = "CHAR(1)")
     private Character category;
@@ -45,7 +50,17 @@ public class Draft {
     @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdTime;
 
-    @CreationTimestamp
-    @Column(name = "updated_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "updated_time")
     private LocalDateTime updatedTime;
+
+    @Builder
+    public Draft(AppUser uploader, String thumbnailPath, String thumbnailType, Long thumbnailSize, Character category, String title, String content) {
+        this.uploader = uploader;
+        this.thumbnailPath = thumbnailPath;
+        this.thumbnailType = thumbnailType;
+        this.thumbnailSize = thumbnailSize;
+        this.category = category;
+        this.title = title;
+        this.content = content;
+    }
 }

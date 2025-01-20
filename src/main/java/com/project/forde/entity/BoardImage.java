@@ -3,7 +3,9 @@ package com.project.forde.entity;
 
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.*;
 
@@ -11,6 +13,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "board_image")
 @DynamicInsert
@@ -22,8 +25,13 @@ public class BoardImage {
 
     @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "board_id", nullable = false, columnDefinition = "INT UNSIGNED")
+    @JoinColumn(name = "board_id", columnDefinition = "INT UNSIGNED")
     private Board board;
+
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "draft_id", columnDefinition = "INT UNSIGNED")
+    private Draft draft;
 
     @Column(name = "image_size", nullable = false, columnDefinition = "INT UNSIGNED")
     private Long imageSize;
@@ -37,4 +45,13 @@ public class BoardImage {
     @CreationTimestamp
     @Column(name = "created_time", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdTime; //생성된 시간
+
+    @Builder
+    public BoardImage(Board board, Long imageSize, String imageType, String imagePath, LocalDateTime createdTime) {
+        this.board = board;
+        this.imageSize = imageSize;
+        this.imageType = imageType;
+        this.imagePath = imagePath;
+        this.createdTime = createdTime;
+    }
 }

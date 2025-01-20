@@ -1,6 +1,6 @@
 package com.project.forde.controller;
 
-import com.project.forde.service.DummyImageService;
+import com.project.forde.service.BoardImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -10,8 +10,8 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequiredArgsConstructor
 @ResponseBody
-public class DummyImageController {
-    private final DummyImageService dummyImageService;
+public class BoardImageController {
+    private final BoardImageService boardImageService;
 
     @PostMapping(value = "/dummy/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> uploadImage(@RequestParam("image") final MultipartFile image) {
@@ -19,6 +19,6 @@ public class DummyImageController {
             return ResponseEntity.badRequest().build();
         }
 
-        return ResponseEntity.ok(dummyImageService.createImage(image));
+        return ResponseEntity.ok(boardImageService.createImage(image));
     }
 }

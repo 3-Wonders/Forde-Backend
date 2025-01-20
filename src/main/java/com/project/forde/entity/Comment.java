@@ -25,7 +25,7 @@ public class Comment {
     @JoinColumn(name = "parent_id", columnDefinition = "INT UNSIGNED")
     private Comment parent;
 
-    @OnDelete(action = OnDeleteAction.SET_NULL)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "uploader_id", columnDefinition = "INT UNSIGNED")
     private AppUser uploader;
@@ -37,13 +37,21 @@ public class Comment {
 
     @Lob
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
-    private String content; //댓글 내용
+    private String content;
+
+    @Column(name = "is_adopt")
+    private Boolean isAdopt;
+
+    @Column(name = "is_deleted", columnDefinition = "DEFAULT FALSE")
+    private Boolean isDeleted;
 
     @CreationTimestamp
     @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdTime; //생성된 시간
+    private LocalDateTime createdTime;
 
-    @CreationTimestamp
-    @Column(name = "updated_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime updatedTime; //업데이트 시간
+    @Column(name = "updated_time")
+    private LocalDateTime updatedTime;
+
+    @Column(name = "deleted_time")
+    private LocalDateTime deletedTime;
 }
