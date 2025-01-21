@@ -15,7 +15,7 @@ public class LikeController {
     public ResponseEntity<?> createLike(
             @PathVariable("boardId") final Long boardId
     ) {
-        likeService.createLike(1L, boardId);
+        likeService.createLike(boardId);
         return ResponseEntity.noContent().build();
     }
 
@@ -23,7 +23,7 @@ public class LikeController {
     public ResponseEntity<?> deleteLike(
             @PathVariable("boardId") final Long boardId
     ) {
-        likeService.deleteLike(1L, boardId);
+        likeService.deleteLike(boardId);
         return ResponseEntity.noContent().build();
     }
 }

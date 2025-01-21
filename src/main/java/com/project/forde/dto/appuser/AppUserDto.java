@@ -1,6 +1,5 @@
 package com.project.forde.dto.appuser;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
 import jakarta.validation.constraints.NotBlank;
@@ -100,7 +99,7 @@ public class AppUserDto {
             private String nickname;
             private String description;
             private String profilePath;
-            private List<TagDto.Response.Tag> interestedTags;
+            private List<TagDto.Response.TagWithoutCount> interestedTags;
             private Integer boardCount;
             private Integer newsCount;
             private Integer likeCount;

@@ -66,7 +66,7 @@ public class BoardController {
 
     @GetMapping("/board/{boardId}/update")
     public ResponseEntity<?> getUpdatePost(@PathVariable("boardId") final Long boardId) {
-        return ResponseEntity.ok(boardService.getUpdatePost(1L, boardId));
+        return ResponseEntity.ok(boardService.getUpdatePost(boardId));
     }
 
     @GetMapping("/board/following")
@@ -86,19 +86,19 @@ public class BoardController {
 
     @PostMapping(value = "/board", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createBoard(@Valid @ModelAttribute final BoardDto.Request.Create request) {
-        Long boardId = boardService.create(29L, request);
+        Long boardId = boardService.create(request);
         return ResponseEntity.created(URI.create("/" + boardId)).build();
     }
 
     @PatchMapping(value = "/board/{boardId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateBoard(@PathVariable("boardId") final Long boardId, @Valid @ModelAttribute final BoardDto.Request.Update request) {
-        boardService.update(1L, boardId, request);
+        boardService.update(boardId, request);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping("/board/{boardId}")
     public ResponseEntity<?> deleteBoard(@PathVariable("boardId") final Long boardId) {
-        boardService.delete(1L, boardId);
+        boardService.delete(boardId);
         return ResponseEntity.noContent().build();
     }
 }

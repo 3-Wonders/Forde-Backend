@@ -17,14 +17,13 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class ViewService {
+    private final AppUserRepository appUserRepository;
     private final ViewRepository viewRepository;
     private final BoardRepository boardRepository;
 
-    private final AppUserService appUserService;
-
     @Transactional
     public void createView(Long userId, Long boardId) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+        AppUser user = appUserRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
         Board board = boardRepository.findById(boardId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
         BoardView boardView = viewRepository.findByBoardViewPK(new BoardViewPK(user, board)).orElse(null);
 

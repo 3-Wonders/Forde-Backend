@@ -1,5 +1,6 @@
 package com.project.forde.service;
 
+import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.comment.CommentDto;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Comment;
@@ -12,7 +13,6 @@ import com.project.forde.repository.MentionRepository;
 import com.project.forde.type.NotificationTypeEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -24,7 +24,6 @@ public class MentionService {
     private final MentionRepository mentionRepository;
     private final AppUserRepository appUserRepository;
 
-    private final AppUserService appUserService;
     private final NotificationService notificationService;
 
     public List<Mention> getMentionIn(final List<Comment> comments) {
@@ -63,7 +62,8 @@ public class MentionService {
             // TODO: Notification 발생
             mentions.forEach(mention -> {
                 notificationService.sendNotification(
-                        appUserService.verifyUserAndGet(userId),
+                        appUserRepository.findByUserId(UserVerifyAspect.getUserId())
+                                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER)),
                         mention.getMentionPK().getUser(),
                         NotificationTypeEnum.MENTION,
                         createdComment.getBoard(),

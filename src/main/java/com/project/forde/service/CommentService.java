@@ -1,5 +1,7 @@
 package com.project.forde.service;
 
+import com.project.forde.annotation.UserVerify;
+import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.comment.CommentDto;
 import com.project.forde.dto.mention.MentionDto;
 import com.project.forde.entity.AppUser;
@@ -62,8 +64,10 @@ public class CommentService {
     }
 
     @Transactional
-    public void create(final Long userId, final Long boardId, final CommentDto.Request request) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void create(final Long boardId, final CommentDto.Request request) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -90,8 +94,10 @@ public class CommentService {
     }
 
     @Transactional
-    public void createReply(final Long userId, final Long boardId, final Long parentId, final CommentDto.Request request) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void createReply(final Long boardId, final Long parentId, final CommentDto.Request request) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -129,8 +135,10 @@ public class CommentService {
     }
 
     @Transactional
-    public void adopt(final Long userId, final Long boardId, final Long commentId) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void adopt(final Long boardId, final Long commentId) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -158,8 +166,10 @@ public class CommentService {
     }
 
     @Transactional
-    public void update(final Long userId, final Long boardId, final Long commentId, final CommentDto.Request request) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void update(final Long boardId, final Long commentId, final CommentDto.Request request) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -215,8 +225,10 @@ public class CommentService {
     }
 
     @Transactional
-    public void delete(final Long userId, final Long boardId, final Long commentId) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void delete(final Long boardId, final Long commentId) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));

@@ -50,7 +50,7 @@ public interface AppUserMapper {
     @Mapping(source = "user.newsCount", target = "newsCount")
     @Mapping(source = "user.likeCount", target = "likeCount")
     @Mapping(source = "user.commentCount", target = "commentCount")
-    AppUserDto.Response.myInfo toResponseMyInfoDto(AppUser user, List<TagDto.Response.Tag> interestedTags);
+    AppUserDto.Response.myInfo toResponseMyInfoDto(AppUser user, List<TagDto.Response.TagWithoutCount> interestedTags);
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.email", target = "email")

@@ -1,12 +1,12 @@
 package com.project.forde.service;
 
+import com.project.forde.annotation.ExtractUserId;
+import com.project.forde.aspect.ExtractUserIdAspect;
 import com.project.forde.dto.mail.MailDto;
 import com.project.forde.entity.AppUser;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.repository.AppUserRepository;
-import com.project.forde.util.GetCookie;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -22,7 +22,6 @@ public class MailService {
     private final RedisTemplate<String, String> redisTemplate;
     private final JavaMailSender mailSender;
     private final AppUserRepository appUserRepository;
-    private final GetCookie getCookie;
 
     public void sendEmail(MailDto.Request.send request) {
         appUserRepository.findByEmail(request.getEmail())
@@ -61,7 +60,9 @@ public class MailService {
         return user.getUserId();
     }
 
-    public void compareEmailPassword(MailDto.Request.compareVerifyCode dto, HttpServletRequest request) {
+    @ExtractUserId
+    public void compareEmailPassword(MailDto.Request.compareVerifyCode dto) {
+        Long userId = ExtractUserIdAspect.getUserId();
         appUserRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
@@ -78,7 +79,6 @@ public class MailService {
         redisTemplate.delete("email:verification:" + dto.getEmail());
 
         String randomKey = RandomStringUtils.random(48, 33, 125, true, true);
-        Long userId = getCookie.getUserId(request);
         redisTemplate.opsForValue().set("email:randomKey:" + userId, randomKey, 10, TimeUnit.MINUTES);
 
         SimpleMailMessage message = new SimpleMailMessage();
@@ -88,8 +88,9 @@ public class MailService {
         mailSender.send(message);
     }
 
-    public void compareRandomKey(String randomKey, HttpServletRequest request) {
-        Long userId = getCookie.getUserId(request);
+    @ExtractUserId
+    public void compareRandomKey(String randomKey) {
+        Long userId = ExtractUserIdAspect.getUserId();
         String storedRandomKey = redisTemplate.opsForValue().get("email:randomKey:" + userId);
 
         if(storedRandomKey == null) {

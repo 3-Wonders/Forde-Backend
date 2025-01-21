@@ -1,5 +1,7 @@
 package com.project.forde.service;
 
+import com.project.forde.annotation.UserVerify;
+import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.RequestLoginDto;
 import com.project.forde.dto.ResponseOtherUserDto;
 import com.project.forde.dto.appuser.AppUserDto;
@@ -14,12 +16,10 @@ import com.project.forde.mapper.AppUserMapper;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.type.AppUserCount;
 import com.project.forde.type.BoardTypeEnum;
-import com.project.forde.mapper.BoardMapper;
 import com.project.forde.mapper.InterestTagMapper;
 import com.project.forde.mapper.TagMapper;
 import com.project.forde.repository.*;
 import com.project.forde.type.SocialTypeEnum;
-import com.project.forde.util.GetCookie;
 import com.project.forde.util.PasswordUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -43,14 +43,11 @@ public class AppUserService {
     private final TagRepository tagRepository;
     private final SnsRepository snsRepository;
     private final BoardRepository boardRepository;
-    private final BoardTagRepository boardTagRepository;
-    private final BoardService boardService;
-    private final GetCookie getCookie;
     private final MailService mailService;
     private final RedisTemplate<String, String> redisTemplate;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
-        AppUser user = this.verifyUserAndGet(userId);
+        AppUser user = this.getUser(userId);
         return AppUserMapper.INSTANCE.toResponseOtherUserDto(user);
     }
 
@@ -65,16 +62,9 @@ public class AppUserService {
      * @throws CustomException 사용자가 존재하지 않을 경우
      * @return 사용자 정보
      */
-    public AppUser verifyUserAndGet(Long userId) {
-        AppUser user = appUserRepository.findById(userId)
+    public AppUser getUser(Long userId) {
+        return appUserRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-
-        // TODO : 사용자가 이메일 인증을 하지 않았다면 예외를 발생시킵니다.
-        if (user.getDeleted()) {
-            throw new CustomException(ErrorCode.DELETED_USER);
-        }
-
-        return user;
     }
 
     /**
@@ -164,8 +154,9 @@ public class AppUserService {
         appUserRepository.save(user);
     }
 
-    public AppUserDto.Response.Intro getIntroUser(HttpServletRequest request) {
-        Long userId = getCookie.getUserId(request);
+    @UserVerify
+    public AppUserDto.Response.Intro getIntroUser() {
+        Long userId = UserVerifyAspect.getUserId();
 
         AppUser user = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
@@ -173,8 +164,9 @@ public class AppUserService {
         return AppUserMapper.INSTANCE.toResponseIntroUserDto(user);
     }
 
-    public AppUserDto.Response.myInfo getMyInfo(HttpServletRequest request) {
-        Long userId = getCookie.getUserId(request);
+    @UserVerify
+    public AppUserDto.Response.myInfo getMyInfo() {
+        Long userId = UserVerifyAspect.getUserId();
 
         AppUser appUser = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
@@ -184,13 +176,14 @@ public class AppUserService {
                 .map(interestTag -> interestTag.getId().getTag().getTagId())
                 .collect(Collectors.toList());
         List<Tag> tags = tagRepository.findAllByTagIdIn(interestTagIds);
-        List<TagDto.Response.Tag> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
+        List<TagDto.Response.TagWithoutCount> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
 
         return AppUserMapper.INSTANCE.toResponseMyInfoDto(appUser, responseTags);
     }
 
-    public AppUserDto.Response.account getAccount(HttpServletRequest request) {
-        Long userId = getCookie.getUserId(request);
+    @UserVerify
+    public AppUserDto.Response.account getAccount() {
+        Long userId = UserVerifyAspect.getUserId();
 
         AppUser appUser = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
@@ -213,7 +206,9 @@ public class AppUserService {
 
     }
 
-    public BoardDto.Response.Boards getUserNews(Long userId, final int page, final int count) {
+    @UserVerify
+    public BoardDto.Response.Boards getUserNews(final int page, final int count) {
+        Long userId = UserVerifyAspect.getUserId();
         AppUser appUser = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
@@ -221,7 +216,9 @@ public class AppUserService {
 
         Page<Board> boards = boardRepository.findAllByUploaderOrderByCreatedTimeDesc(pageable, appUser);
 
-        return boardService.createBoardsDto(boards);
+//        return boardService.createBoardsDto(boards);
+        // TODO : 뉴스 게시글을 가져오는 로직을 구현합니다.
+        return new BoardDto.Response.Boards(new ArrayList<>(), 0L);
     }
 
     public List<AppUserDto.Response.searchUserNickname> getSearchUserNickname(final int page, final int count, String nickname) {
@@ -232,8 +229,9 @@ public class AppUserService {
         return appUsers.stream().map(AppUserMapper.INSTANCE::toResponseSearchNicknameDto).toList();
     }
 
-    public void updateMyInfo(AppUserDto.Request.updateMyInfo dto, HttpServletRequest request) {
-        Long userId = getCookie.getUserId(request);
+    @UserVerify
+    public void updateMyInfo(AppUserDto.Request.updateMyInfo dto) {
+        Long userId = UserVerifyAspect.getUserId();
         AppUser appUser = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
@@ -325,10 +323,11 @@ public class AppUserService {
         return newAppUser;
     }
 
-    public void updatePassword(AppUserDto.Request.updatePassword dto, HttpServletRequest request) {
-        mailService.compareRandomKey(dto.getRandomKey(), request);
+    @UserVerify
+    public void updatePassword(AppUserDto.Request.updatePassword dto) {
+        Long userId = UserVerifyAspect.getUserId();
+        mailService.compareRandomKey(dto.getRandomKey());
 
-        Long userId = getCookie.getUserId(request);
         AppUser appUser = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
@@ -339,8 +338,9 @@ public class AppUserService {
         redisTemplate.delete("email:randomKey:" + userId);
     }
 
-    public void updateSocialSetting(AppUserDto.Request.updateSocialSetting dto, HttpServletRequest request) {
-        Long userId = getCookie.getUserId(request);
+    @UserVerify
+    public void updateSocialSetting(AppUserDto.Request.updateSocialSetting dto) {
+        Long userId = UserVerifyAspect.getUserId();
 
         AppUser appUser = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
@@ -351,8 +351,9 @@ public class AppUserService {
         appUserRepository.save(appUser);
     }
 
-    public void updateNotificationSetting(AppUserDto.Request.updateNotificationSetting dto, HttpServletRequest request) {
-        Long userId = getCookie.getUserId(request);
+    @UserVerify
+    public void updateNotificationSetting(AppUserDto.Request.updateNotificationSetting dto) {
+        Long userId = UserVerifyAspect.getUserId();
 
         AppUser appUser = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
@@ -366,8 +367,9 @@ public class AppUserService {
         appUserRepository.save(appUser);
     }
 
+    @UserVerify
     public void removeUser(HttpServletRequest request) {
-        Long userId = getCookie.getUserId(request);
+        Long userId = UserVerifyAspect.getUserId();
 
         AppUser appUser = appUserRepository.findByUserId(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));

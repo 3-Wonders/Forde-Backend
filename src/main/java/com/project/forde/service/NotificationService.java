@@ -1,5 +1,7 @@
 package com.project.forde.service;
 
+import com.project.forde.annotation.UserVerify;
+import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.notification.NotificationDto;
 import com.project.forde.entity.*;
 import com.project.forde.entity.composite.NotificationReadPK;
@@ -38,8 +40,10 @@ public class NotificationService {
     private final AppUserService appUserService;
 
     @Transactional
+    @UserVerify
     public SseEmitter subscribe(String lastEventId) {
-        AppUser user = appUserService.verifyUserAndGet(1L);
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
         String emitterId = user.getUserId() + "_" + System.currentTimeMillis();
         SseEmitter emitter = sseRepository.save(emitterId, new SseEmitter(TIME_OUT));
 
@@ -52,9 +56,10 @@ public class NotificationService {
         return emitter;
     }
 
+    @UserVerify
     public NotificationDto.Response.Notifications getNotifications(int page, int count) {
-        // TODO: User ID를 27로 고정하고 있으니, 추후 수정이 필요합니다.
-        AppUser user = appUserService.verifyUserAndGet(27L);
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
         Page<Notification> pages = notificationRepository.findAllByReceiverOrderByNotificationIdDesc(pageable, user);
 
@@ -70,9 +75,10 @@ public class NotificationService {
         return new NotificationDto.Response.Notifications(response, total);
     }
 
+    @UserVerify
     public NotificationDto.Response.FollowingUnReadCount getFollowingPostsCount() {
-        // TODO: User ID를 27로 고정하고 있으니, 추후 수정이 필요합니다.
-        AppUser user = appUserService.verifyUserAndGet(27L);
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
         Long unReadCount = notificationReadRepository.countByUnReadNotification(user.getUserId(), new String[]{
                 NotificationTypeEnum.FOLLOWING_POST.getType(),
         }, BoardTypeEnum.N.getType());
@@ -80,9 +86,10 @@ public class NotificationService {
         return new NotificationDto.Response.FollowingUnReadCount(unReadCount);
     }
 
+    @UserVerify
     public NotificationDto.Response.FollowNewPost hasNewFollowingPost() {
-        // TODO: User ID를 27로 고정하고 있으니, 추후 수정이 필요합니다.
-        AppUser user = appUserService.verifyUserAndGet(27L);
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
         Boolean hasNewPosts = notificationReadRepository.countByUnReadNotification(user.getUserId(), new String[]{
                 NotificationTypeEnum.FOLLOWING_POST.getType(),
         }, null) > 0;
@@ -113,8 +120,10 @@ public class NotificationService {
     }
 
     @Transactional
+    @UserVerify
     public void readNotification(List<Long> notificationIds) {
-        AppUser user = appUserService.verifyUserAndGet(27L);
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
         List<NotificationRead> alreadyReads = notificationReadRepository
                 .findAllByNotificationReadPK_ReaderAndNotificationReadPK_NotificationNotificationIdIn(
                                 user,

@@ -2,6 +2,10 @@ package com.project.forde.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.project.forde.annotation.ExtractUserId;
+import com.project.forde.annotation.UserVerify;
+import com.project.forde.aspect.ExtractUserIdAspect;
+import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
@@ -85,11 +89,12 @@ public class BoardService {
         return createBoardsDto(boards);
     }
 
+    @ExtractUserId
     public BoardDto.Response.Boards getFollowingNews(final int page, final int count, @Nullable final Character type) {
+        Long userId = ExtractUserIdAspect.getUserId();
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
 
-        // TODO : UserId가 27L로 고정되었으므로, 추후에 수정 필요
-        Page<Board> boards = boardRepository.findAllByCategoryAndFollowingOrderByBoardIdDesc(pageable, 27L, type);
+        Page<Board> boards = boardRepository.findAllByCategoryAndFollowingOrderByBoardIdDesc(pageable, userId, type);
         return createBoardsDto(boards);
     }
 
@@ -114,7 +119,9 @@ public class BoardService {
         return BoardMapper.INSTANCE.toDetail(board, responseTags);
     }
 
-    public BoardDto.Response.Update getUpdatePost(final Long userId, final Long boardId) {
+    @UserVerify
+    public BoardDto.Response.Update getUpdatePost(final Long boardId) {
+        Long userId = UserVerifyAspect.getUserId();
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
 
@@ -133,8 +140,10 @@ public class BoardService {
     }
 
     @Transactional
-    public Long create(final Long userId, final BoardDto.Request.Create request) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public Long create(final BoardDto.Request.Create request) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         if (user.getDeleted()) {
             throw new CustomException(ErrorCode.DELETED_USER);
@@ -160,8 +169,10 @@ public class BoardService {
     }
 
     @Transactional
-    public void update(final Long userId, final Long boardId, final BoardDto.Request.Update request) {
-        appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void update(final Long boardId, final BoardDto.Request.Update request) {
+        Long userId = UserVerifyAspect.getUserId();
+        appUserService.getUser(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -252,8 +263,10 @@ public class BoardService {
     }
 
     @Transactional
-    public void delete(final Long userId, final Long boardId) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void delete(final Long boardId) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Board board = boardRepository.findByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));

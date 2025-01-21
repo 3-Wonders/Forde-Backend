@@ -1,5 +1,6 @@
 package com.project.forde.service;
 
+import com.project.forde.annotation.UserVerify;
 import com.project.forde.dto.FileDto;
 import com.project.forde.dto.dummyImage.DummyImageDto;
 import com.project.forde.entity.Board;
@@ -32,6 +33,7 @@ public class BoardImageService {
 
     private final FileStore fileStore;
 
+    @UserVerify
     public DummyImageDto.Response.Image createImage(final MultipartFile image) {
         FileDto file = null;
         BoardImage dummyImage = null;

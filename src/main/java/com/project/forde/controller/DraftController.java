@@ -19,24 +19,24 @@ public class DraftController {
 
     @GetMapping()
     public ResponseEntity<?> getDrafts() {
-        return ResponseEntity.ok(draftService.getDrafts(1L));
+        return ResponseEntity.ok(draftService.getDrafts());
     }
 
     @PostMapping(value = "", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createDraft(@Valid final DraftDto.Request.Create request) {
-        draftService.create(1L, request);
+        draftService.create(request);
         return ResponseEntity.created(URI.create("/draft")).build();
     }
 
     @PatchMapping(value = "/{draftId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> updateDraft(@PathVariable final Long draftId, @Valid final DraftDto.Request.Update request) {
-        draftService.update(1L, draftId, request);
+        draftService.update(draftId, request);
         return ResponseEntity.noContent().build();
     }
 
     @DeleteMapping(value = "/{draftId}")
     public ResponseEntity<?> deleteDraft(@PathVariable final Long draftId) {
-        draftService.delete(1L, draftId);
+        draftService.delete(draftId);
         return ResponseEntity.noContent().build();
     }
 }

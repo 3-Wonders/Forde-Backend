@@ -1,6 +1,5 @@
 package com.project.forde.service;
 
-import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Sns;
 import com.project.forde.exception.CustomException;
@@ -8,15 +7,9 @@ import com.project.forde.exception.ErrorCode;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.SnsRepository;
 import com.project.forde.type.SocialTypeEnum;
-import com.project.forde.util.GetCookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.hibernate.validator.internal.util.stereotypes.Lazy;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.HashOperations;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
@@ -38,7 +31,7 @@ public class SnsService extends DefaultOAuth2UserService {
         Long userId = (Long) request.getSession().getAttribute("userId");
 
         if(userId != null){
-            linkAccountSns(oAuth2User, snsKind, userId, request);
+            linkAccountSns(oAuth2User, snsKind, userId);
             return userId;
         }
         return snsAuth(oAuth2User, snsKind);
@@ -162,7 +155,7 @@ public class SnsService extends DefaultOAuth2UserService {
         return socialId;
     }
 
-    public void linkAccountSns(OAuth2User oAuth2User, String snsKind, Long userId, HttpServletRequest request) {
+    public void linkAccountSns(OAuth2User oAuth2User, String snsKind, Long userId) {
         String snsId = getSnsId(oAuth2User, snsKind);
         Optional<Sns> snsUser = snsRepository.findBySnsId(snsId);
 
@@ -179,5 +172,4 @@ public class SnsService extends DefaultOAuth2UserService {
         newSnsUser.setAppUser(appUser);
         snsRepository.save(newSnsUser);
     }
-
 }

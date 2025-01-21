@@ -1,5 +1,7 @@
 package com.project.forde.service;
 
+import com.project.forde.annotation.UserVerify;
+import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Board;
 import com.project.forde.entity.BoardLike;
@@ -20,15 +22,16 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class LikeService {
     private final LikeRepository likeRepository;
-    private final AppUserRepository appUserRepository;
     private final BoardRepository boardRepository;
 
     private final NotificationService notificationService;
     private final AppUserService appUserService;
 
     @Transactional
-    public void createLike(Long userId, Long boardId) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void createLike(final Long boardId) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -53,8 +56,10 @@ public class LikeService {
     }
 
     @Transactional
-    public void deleteLike(Long userId, Long boardId) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void deleteLike(final Long boardId) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Board board = boardRepository.findById(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));

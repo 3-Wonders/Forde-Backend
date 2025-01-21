@@ -1,5 +1,6 @@
 package com.project.forde.service;
 
+import com.project.forde.annotation.UserVerify;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Tag;
@@ -46,6 +47,7 @@ public class TagService {
     }
 
     @Transactional
+    @UserVerify
     public TagDto.Response.TagId create(final TagDto.Request request) {
         Tag tag = tagRepository.save(
                 Tag.builder()

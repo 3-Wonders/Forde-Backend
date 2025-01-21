@@ -40,7 +40,7 @@ public class CommentController {
             @PathVariable("board_id") final Long boardId,
             @Valid @RequestBody final CommentDto.Request request
     ) {
-        commentService.create(1L, boardId, request);
+        commentService.create(boardId, request);
         return ResponseEntity.created(URI.create("/board/" + boardId + "/comment")).build();
     }
 
@@ -50,7 +50,7 @@ public class CommentController {
             @PathVariable("parent_id") final Long parentId,
             @Valid @RequestBody final CommentDto.Request request
     ) {
-        commentService.createReply(1L, boardId, parentId, request);
+        commentService.createReply(boardId, parentId, request);
         return ResponseEntity.created(URI.create("/board/" + boardId + "/comment/" + parentId)).build();
     }
 
@@ -59,7 +59,7 @@ public class CommentController {
             @PathVariable("board_id") final Long boardId,
             @PathVariable("comment_id") final Long commentId
     ) {
-        commentService.adopt(1L, boardId, commentId);
+        commentService.adopt(boardId, commentId);
         return ResponseEntity.noContent().build();
     }
 
@@ -69,7 +69,7 @@ public class CommentController {
             @PathVariable("comment_id") final Long commentId,
             @Valid @RequestBody final CommentDto.Request request
     ) {
-        commentService.update(1L, boardId, commentId, request);
+        commentService.update(boardId, commentId, request);
         return ResponseEntity.noContent().build();
     }
 
@@ -78,7 +78,7 @@ public class CommentController {
             @PathVariable("board_id") final Long boardId,
             @PathVariable("comment_id") final Long commentId
     ) {
-        commentService.delete(1L, boardId, commentId);
+        commentService.delete(boardId, commentId);
         return ResponseEntity.noContent().build();
     }
 }

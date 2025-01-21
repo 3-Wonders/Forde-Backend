@@ -6,7 +6,6 @@ import com.project.forde.dto.RequestUpdateProfileDto;
 import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.service.AppUserService;
 import com.project.forde.service.MailService;
-import com.project.forde.util.GetCookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
@@ -14,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,7 +22,6 @@ import org.springframework.web.bind.annotation.*;
 public class AppUserController {
     private final AppUserService appUserService;
     private final MailService mailService;
-    private final GetCookie getCookie;
 
     @GetMapping("/{user_id}")
     public ResponseEntity<?> getOtherUser(@PathVariable(value = "user_id") Long userId) {
@@ -72,26 +69,26 @@ public class AppUserController {
     }
 
     @PostMapping(value = "/verify/compare/password")
-    public ResponseEntity<?> compareEmailPassword(@RequestBody MailDto.Request.compareVerifyCode dto, final HttpServletRequest request) {
-        mailService.compareEmailPassword(dto, request);
+    public ResponseEntity<?> compareEmailPassword(@RequestBody MailDto.Request.compareVerifyCode dto) {
+        mailService.compareEmailPassword(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/password/randomkey")
-    public ResponseEntity<?> compareRandomKey(@RequestBody MailDto.Request.compareRandomKey dto, final HttpServletRequest request) {
-        mailService.compareRandomKey(dto.getRandomKey(), request);
+    public ResponseEntity<?> compareRandomKey(@RequestBody MailDto.Request.compareRandomKey dto) {
+        mailService.compareRandomKey(dto.getRandomKey());
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping(value = "/password")
-    public ResponseEntity<?> updatePassword(@RequestBody AppUserDto.Request.updatePassword dto, final HttpServletRequest request) {
-        appUserService.updatePassword(dto, request);
+    public ResponseEntity<?> updatePassword(@RequestBody AppUserDto.Request.updatePassword dto) {
+        appUserService.updatePassword(dto);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/intro")
-    public ResponseEntity<?> getIntroUser(final HttpServletRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getIntroUser(request));
+    public ResponseEntity<?> getIntroUser() {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getIntroUser());
     }
 
     @GetMapping("/{user_id}/news")
@@ -100,18 +97,18 @@ public class AppUserController {
             @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
             @RequestParam(value = "count", required = false, defaultValue = "5") final int count
             ) {
-        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserNews(userId, page, count));
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserNews(page, count));
     }
 
     @GetMapping("")
-    public ResponseEntity<?> getMyInfoUser(final HttpServletRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getMyInfo(request));
+    public ResponseEntity<?> getMyInfoUser() {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getMyInfo());
     }
 
 
     @GetMapping("account")
-    public ResponseEntity<?> getAccount(final HttpServletRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getAccount(request));
+    public ResponseEntity<?> getAccount() {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getAccount());
     }
 
     @GetMapping(value = "/mention")
@@ -124,20 +121,20 @@ public class AppUserController {
     }
 
     @PatchMapping(value = "/sns/setting")
-    public ResponseEntity<?> updateSocialSetting(@RequestBody @Valid AppUserDto.Request.updateSocialSetting dto, final HttpServletRequest request) {
-        appUserService.updateSocialSetting(dto, request);
+    public ResponseEntity<?> updateSocialSetting(@RequestBody @Valid AppUserDto.Request.updateSocialSetting dto) {
+        appUserService.updateSocialSetting(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping(value = "/notification")
-    public ResponseEntity<?> updateNotificationSetting(@RequestBody @Valid AppUserDto.Request.updateNotificationSetting dto, final HttpServletRequest request) {
-        appUserService.updateNotificationSetting(dto, request);
+    public ResponseEntity<?> updateNotificationSetting(@RequestBody @Valid AppUserDto.Request.updateNotificationSetting dto) {
+        appUserService.updateNotificationSetting(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping(value = "")
-    public ResponseEntity<?> updateMyInfo(@RequestBody @Valid AppUserDto.Request.updateMyInfo dto, final HttpServletRequest request) {
-        appUserService.updateMyInfo(dto, request);
+    public ResponseEntity<?> updateMyInfo(@RequestBody @Valid AppUserDto.Request.updateMyInfo dto) {
+        appUserService.updateMyInfo(dto);
         return ResponseEntity.noContent().build();
     }
 

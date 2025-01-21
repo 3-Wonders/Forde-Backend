@@ -1,5 +1,7 @@
 package com.project.forde.service;
 
+import com.project.forde.annotation.UserVerify;
+import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.draft.DraftDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
@@ -24,8 +26,8 @@ import java.util.List;
 public class DraftService {
     private final DraftRepository draftRepository;
     private final DraftTagRepository draftTagRepository;
-    private final AppUserRepository appUserRepository;
     private final BoardImageRepository boardImageRepository;
+    private final AppUserRepository appUserRepository;
 
     private final AppUserService appUserService;
     private final TagService tagService;
@@ -35,8 +37,10 @@ public class DraftService {
 
     private final FileStore fileStore;
 
-    public List<DraftDto.Response.Draft> getDrafts(final Long userId) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public List<DraftDto.Response.Draft> getDrafts() {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         List<Draft> drafts = draftRepository.findTop10ByUploaderOrderByDraftIdDesc(user);
         List<DraftTag> draftTags = draftTagRepository.findAllByDraftTagPK_DraftIn(drafts);
@@ -65,8 +69,10 @@ public class DraftService {
     }
 
     @Transactional
-    public void create(final Long userId, final DraftDto.Request.Create request) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void create(final DraftDto.Request.Create request) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Long draftTotal = draftRepository.countByUploader(user);
         if (draftTotal >= 10) {
@@ -96,8 +102,10 @@ public class DraftService {
     }
 
     @Transactional
-    public void update(final Long userId, final Long draftId, final DraftDto.Request.Update request) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void update(final Long draftId, final DraftDto.Request.Update request) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Draft draft = draftRepository.findById(draftId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_DRAFT));
@@ -142,8 +150,10 @@ public class DraftService {
     }
 
     @Transactional
-    public void delete(final Long userId, final Long draftId) {
-        AppUser user = appUserService.verifyUserAndGet(userId);
+    @UserVerify
+    public void delete(final Long draftId) {
+        Long userId = UserVerifyAspect.getUserId();
+        AppUser user = appUserService.getUser(userId);
 
         Draft draft = draftRepository.findById(draftId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_DRAFT));
