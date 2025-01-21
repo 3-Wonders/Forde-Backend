@@ -24,6 +24,7 @@ import com.project.forde.util.FileStore;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -137,6 +138,13 @@ public class BoardService {
         List<Long> imageIds = boardImages.stream().map(BoardImage::getImageId).toList();
 
         return BoardMapper.INSTANCE.toUpdatePost(board, responseTags, imageIds);
+    }
+
+    public BoardDto.Response.Boards getDailyNews(final int page, final int count) {
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+        Page<Board> boards = boardRepository.findAllByDailyNews(pageable);
+
+        return createBoardsDto(boards);
     }
 
     @Transactional

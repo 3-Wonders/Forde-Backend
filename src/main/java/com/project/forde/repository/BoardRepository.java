@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
@@ -46,4 +47,13 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             Pageable pageable,
             @Param("tagName") String tagName
     );
+
+    @Query(
+            value = "SELECT b FROM Board b " +
+                    "JOIN FETCH b.uploader u " +
+                    "WHERE b.category = 'N' " +
+                    "AND FUNCTION('DATE_FORMAT', b.createdTime, '%Y-%m-%d') = FUNCTION('CURDATE') " +
+                    "ORDER BY b.boardId DESC, b.viewCount DESC, b.likeCount DESC, b.commentCount DESC, b.createdTime DESC "
+    )
+    Page<Board> findAllByDailyNews(Pageable pageable);
 }
