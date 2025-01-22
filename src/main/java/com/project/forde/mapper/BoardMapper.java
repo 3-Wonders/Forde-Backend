@@ -22,6 +22,9 @@ public interface BoardMapper {
     @Mapping(source = "file.storePath", target = "thumbnailPath")
     @Mapping(source = "file.extension", target = "thumbnailType")
     @Mapping(source = "file.size", target = "thumbnailSize")
+    @Mapping(target = "viewCount", constant = "0")
+    @Mapping(target = "likeCount", constant = "0")
+    @Mapping(target = "commentCount", constant = "0")
     Board toEntity(AppUser user, BoardDto.Request.Create request, FileDto file);
 
     @Mapping(source = "board.boardId", target = "boardId")

@@ -53,7 +53,17 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
                     "JOIN FETCH b.uploader u " +
                     "WHERE b.category = 'N' " +
                     "AND FUNCTION('DATE_FORMAT', b.createdTime, '%Y-%m-%d') = FUNCTION('CURDATE') " +
-                    "ORDER BY b.boardId DESC, b.viewCount DESC, b.likeCount DESC, b.commentCount DESC, b.createdTime DESC "
+                    "ORDER BY b.viewCount DESC, b.likeCount DESC, b.commentCount DESC, b.boardId DESC "
     )
     Page<Board> findAllByDailyNews(Pageable pageable);
+
+    @Query(
+            value = "SELECT b FROM Board b " +
+                    "JOIN FETCH b.uploader u " +
+                    "WHERE b.category = 'N' " +
+                        "AND CAST(FUNCTION('DATE_FORMAT', b.createdTime, '%Y-%m-%d') AS string) " +
+                        "LIKE CAST(CONCAT(FUNCTION('DATE_FORMAT', FUNCTION('NOW'), '%Y-%m'), '%') as string) " +
+                    "ORDER BY b.viewCount DESC, b.likeCount DESC, b.commentCount DESC, b.boardId DESC "
+    )
+    Page<Board> findAllByMonthlyNews(Pageable pageable);
 }

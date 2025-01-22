@@ -92,6 +92,14 @@ public class BoardController {
         return ResponseEntity.ok(boardService.getDailyNews(page, count));
     }
 
+    @GetMapping("/news/monthly")
+    public ResponseEntity<?> getMonthlyNews(
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.ok(boardService.getMonthlyNews(page, count));
+    }
+
     @PostMapping(value = "/board", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createBoard(@Valid @ModelAttribute final BoardDto.Request.Create request) {
         Long boardId = boardService.create(request);

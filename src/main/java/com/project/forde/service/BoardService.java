@@ -147,6 +147,13 @@ public class BoardService {
         return createBoardsDto(boards);
     }
 
+    public BoardDto.Response.Boards getMonthlyNews(final int page, final int count) {
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+        Page<Board> boards = boardRepository.findAllByMonthlyNews(pageable);
+
+        return createBoardsDto(boards);
+    }
+
     @Transactional
     @UserVerify
     public Long create(final BoardDto.Request.Create request) {
