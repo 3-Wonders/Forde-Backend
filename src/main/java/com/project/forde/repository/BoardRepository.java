@@ -10,6 +10,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.lang.Nullable;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface BoardRepository extends JpaRepository<Board, Long> {
@@ -19,7 +20,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findAllByOrderByCreatedTimeDesc(Pageable pageable);
     Page<Board> findAllByCategoryOrderByCreatedTimeDesc(Pageable pageable, Character type);
     Page<Board> findALlByTitleContainingOrderByCreatedTimeDesc(Pageable pageable, String keyword);
-    Page<Board> findAllByUploaderOrderByCreatedTimeDesc(Pageable pageable, AppUser appuser);
+    Page<Board> findAllByUploaderAndCategoryOrderByCreatedTimeDesc(Pageable pageable, AppUser appuser, Character type);
+    Page<Board> findAllByBoardIdInOrderByCreatedTimeDesc(List<Long> boardIds, Pageable pageable);
 
     @Query(
             value = "SELECT b FROM Board b " +

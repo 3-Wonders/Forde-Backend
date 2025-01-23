@@ -1,5 +1,7 @@
 package com.project.forde.service;
 
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ListMultimap;
 import com.project.forde.annotation.UserVerify;
 import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.RequestLoginDto;
@@ -13,6 +15,7 @@ import com.project.forde.entity.composite.InterestTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.AppUserMapper;
+import com.project.forde.mapper.BoardMapper;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.type.AppUserCount;
 import com.project.forde.type.BoardTypeEnum;
@@ -45,6 +48,8 @@ public class AppUserService {
     private final BoardRepository boardRepository;
     private final MailService mailService;
     private final RedisTemplate<String, String> redisTemplate;
+    private final BoardTagRepository boardTagRepository;
+    private final LikeRepository likeRepository;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
         AppUser user = this.getUser(userId);
@@ -154,6 +159,52 @@ public class AppUserService {
         appUserRepository.save(user);
     }
 
+    public BoardDto.Response.UserBoards createUserBoardsDto(Page<Board> boards) {
+        List<BoardTag> boardTags = boardTagRepository.findAllByBoardTagPK_BoardIn(boards.toList());
+        ListMultimap<Long, Tag> tagMap = ArrayListMultimap.create();
+
+        boardTags.forEach(boardTag -> {
+            Tag tag = boardTag.getBoardTagPK().getTag();
+            tagMap.put(boardTag.getBoardTagPK().getBoard().getBoardId(), tag);
+        });
+
+        List<BoardDto.Response.UserBoards.UserBoard> mappingBoards = boards.getContent().stream().map(board -> {
+            List<Tag> tags = tagMap.get(board.getBoardId());
+            List<TagDto.Response.TagWithoutCount> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
+
+            return BoardMapper.INSTANCE.toUserBoardsInBoard(board, responseTags);
+        }).toList();
+
+        return new BoardDto.Response.UserBoards(mappingBoards, boards.getTotalElements());
+    }
+
+    public BoardDto.Response.UserBoards getUserBoard(Long userId, Character type, final int page, final int count) {
+        AppUser appUser = getUser(userId);
+
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+
+        Page<Board> boards = boardRepository.findAllByUploaderAndCategoryOrderByCreatedTimeDesc(pageable, appUser, type);
+
+        return createUserBoardsDto(boards);
+    }
+
+    public BoardDto.Response.UserBoards getUserLikeBoard(Long userId, final int page, final int count) {
+        AppUser appUser = getUser(userId);
+
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+
+        List<BoardLike> boardLikes = likeRepository.findAllByBoardLikePK_User(appUser);
+        List<Long> boardIds = boardLikes.stream()
+                .map(boardLike -> boardLike.getBoardLikePK().getBoard().getBoardId())
+                .toList();
+
+        Page<Board> boards = boardRepository.findAllByBoardIdInOrderByCreatedTimeDesc(boardIds, pageable);
+
+        return createUserBoardsDto(boards);
+    }
+
+
+
     @UserVerify
     public AppUserDto.Response.Intro getIntroUser() {
         Long userId = UserVerifyAspect.getUserId();
@@ -204,21 +255,6 @@ public class AppUserService {
 
         return AppUserMapper.INSTANCE.toResponseAccountDto(appUser, snsInfos);
 
-    }
-
-    @UserVerify
-    public BoardDto.Response.Boards getUserNews(final int page, final int count) {
-        Long userId = UserVerifyAspect.getUserId();
-        AppUser appUser = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-
-        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
-
-        Page<Board> boards = boardRepository.findAllByUploaderOrderByCreatedTimeDesc(pageable, appUser);
-
-//        return boardService.createBoardsDto(boards);
-        // TODO : 뉴스 게시글을 가져오는 로직을 구현합니다.
-        return new BoardDto.Response.Boards(new ArrayList<>(), 0L);
     }
 
     public List<AppUserDto.Response.searchUserNickname> getSearchUserNickname(final int page, final int count, String nickname) {

@@ -97,7 +97,34 @@ public class AppUserController {
             @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
             @RequestParam(value = "count", required = false, defaultValue = "5") final int count
             ) {
-        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserNews(page, count));
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserBoard(userId, 'N', page, count));
+    }
+
+    @GetMapping("/{user_id}/board")
+    public ResponseEntity<?> getUserBoards(
+            @PathVariable(value = "user_id") Long userId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserBoard(userId, 'B', page, count));
+    }
+
+    @GetMapping("/{user_id}/question")
+    public ResponseEntity<?> getUserQuestions(
+            @PathVariable(value = "user_id") Long userId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserBoard(userId, 'Q', page, count));
+    }
+
+    @GetMapping("/{user_id}/like")
+    public ResponseEntity<?> getUserLikeBoards(
+            @PathVariable(value = "user_id") Long userId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserLikeBoard(userId, page, count));
     }
 
     @GetMapping("")

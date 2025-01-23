@@ -94,6 +94,14 @@ public class AppUserDto {
         @Getter
         @Setter
         @AllArgsConstructor
+        public static class LightInfo {
+            private String profilePath;
+            private String nickname;
+        }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
         public static class myInfo {
             private Long userId;
             private String nickname;
