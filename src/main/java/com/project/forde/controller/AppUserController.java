@@ -37,7 +37,7 @@ public class AppUserController {
     }
 
     @PostMapping(value = "")
-    public ResponseEntity<?> create(@Valid @RequestBody AppUserDto.Request.signup dto) {
+    public ResponseEntity<?> create(@Valid @RequestBody AppUserDto.Request.Signup dto) {
         appUserService.createAppUser(dto);
         return ResponseEntity.noContent().build();
     }
@@ -53,14 +53,14 @@ public class AppUserController {
     }
 
     @PostMapping(value = "/verify")
-    public ResponseEntity<?> sendEmail(@Valid @RequestBody MailDto.Request.send dto) {
-        mailService.sendEmail(dto);
+    public ResponseEntity<?> sendVerificationCode(@Valid @RequestBody MailDto.Request.Send dto) {
+        mailService.sendVerificationCode(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/verify/compare")
-    public ResponseEntity<?> compareEmail(@RequestBody MailDto.Request.compareVerifyCode dto, final HttpServletRequest request) {
-        Long userId = mailService.compareEmail(dto);
+    public ResponseEntity<?> verifyEmail(@RequestBody MailDto.Request.EmailVerification dto, final HttpServletRequest request) {
+        Long userId = mailService.verifyEmail(dto);
         final HttpSession session = request.getSession();
 
         session.setAttribute("userId", userId);
@@ -69,19 +69,19 @@ public class AppUserController {
     }
 
     @PostMapping(value = "/verify/compare/password")
-    public ResponseEntity<?> compareEmailPassword(@RequestBody MailDto.Request.compareVerifyCode dto) {
-        mailService.compareEmailPassword(dto);
+    public ResponseEntity<?> verifyEmailPassword(@RequestBody MailDto.Request.EmailVerification dto) {
+        mailService.verifyEmailPassword(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/password/randomkey")
-    public ResponseEntity<?> compareRandomKey(@RequestBody MailDto.Request.compareRandomKey dto) {
-        mailService.compareRandomKey(dto.getRandomKey());
+    public ResponseEntity<?> verifyRandomKey(@RequestBody MailDto.Request.RandomKeyVerification dto) {
+        mailService.verifyRandomKey(dto.getRandomKey());
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping(value = "/password")
-    public ResponseEntity<?> updatePassword(@RequestBody AppUserDto.Request.updatePassword dto) {
+    public ResponseEntity<?> updatePassword(@RequestBody AppUserDto.Request.UpdatePassword dto) {
         appUserService.updatePassword(dto);
         return ResponseEntity.noContent().build();
     }
@@ -148,19 +148,19 @@ public class AppUserController {
     }
 
     @PatchMapping(value = "/sns/setting")
-    public ResponseEntity<?> updateSocialSetting(@RequestBody @Valid AppUserDto.Request.updateSocialSetting dto) {
+    public ResponseEntity<?> updateSocialSetting(@RequestBody @Valid AppUserDto.Request.UpdateSocialSetting dto) {
         appUserService.updateSocialSetting(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping(value = "/notification")
-    public ResponseEntity<?> updateNotificationSetting(@RequestBody @Valid AppUserDto.Request.updateNotificationSetting dto) {
+    public ResponseEntity<?> updateNotificationSetting(@RequestBody @Valid AppUserDto.Request.UpdateNotificationSetting dto) {
         appUserService.updateNotificationSetting(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping(value = "")
-    public ResponseEntity<?> updateMyInfo(@RequestBody @Valid AppUserDto.Request.updateMyInfo dto) {
+    public ResponseEntity<?> updateMyInfo(@RequestBody @Valid AppUserDto.Request.UpdateMyInfo dto) {
         appUserService.updateMyInfo(dto);
         return ResponseEntity.noContent().build();
     }

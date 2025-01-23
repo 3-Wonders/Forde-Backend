@@ -2,13 +2,10 @@ package com.project.forde.dto.appuser;
 
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
-import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
 
@@ -17,7 +14,7 @@ public class AppUserDto {
     public static class Request {
 
         @Getter
-        public static class signup {
+        public static class Signup {
             @NotBlank(message = "이메일을 작성해주세요.")
             @Size(max = 60, message = "이메일은 60자 이하여야 합니다.")
             private String email;
@@ -35,7 +32,7 @@ public class AppUserDto {
         }
 
         @Getter
-        public static class updatePassword {
+        public static class UpdatePassword {
             @NotBlank(message = "비밀번호를 작성해주세요.")
             @Size(min = 8, max = 20, message = "비밀번호는 8 ~ 20자 이내로 입력해야 합니다.")
             @Pattern(regexp = "^(?=.*[a-zA-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]+$", message = "영문자, 숫자, 특수문자를 1개씩 포함해야 합니다.")
@@ -46,7 +43,7 @@ public class AppUserDto {
         }
 
         @Getter
-        public static class updateSocialSetting {
+        public static class UpdateSocialSetting {
             @NotNull(message = "팔로우 차단 여부를 체크해주세요.")
             private Boolean disableFollow;
             @NotNull(message = "비공개 계정 여부를 체크해주세요.")
@@ -54,7 +51,7 @@ public class AppUserDto {
         }
 
         @Getter
-        public static class updateNotificationSetting {
+        public static class UpdateNotificationSetting {
             @NotNull(message = "공지 알림 여부를 체크해주세요.")
             private Boolean noticeNotification;
             @NotNull(message = "댓글 알림 여부를 체크해주세요.")
@@ -70,13 +67,12 @@ public class AppUserDto {
         }
 
         @Getter
-        public static class updateMyInfo {
+        public static class UpdateMyInfo {
             @Size(max = 10, message = "닉네임은 10자 이하여야 합니다.")
             private String nickname;
             private String description;
             private List<Long> interestTags;
         }
-
     }
 
     public static class Response {
@@ -102,7 +98,7 @@ public class AppUserDto {
         @Getter
         @Setter
         @AllArgsConstructor
-        public static class myInfo {
+        public static class MyInfo {
             private Long userId;
             private String nickname;
             private String description;
@@ -117,7 +113,7 @@ public class AppUserDto {
         @Getter
         @Setter
         @AllArgsConstructor
-        public static class account {
+        public static class Account {
             private Long userId;
             private String email;
             private List<SnsDto.Response.connectedStatus> snsInfos;
@@ -126,7 +122,7 @@ public class AppUserDto {
         @Getter
         @Setter
         @AllArgsConstructor
-        public static class searchUserNickname {
+        public static class SearchUserNickname {
             private Long userId;
             private String nickname;
             private String profilePath;

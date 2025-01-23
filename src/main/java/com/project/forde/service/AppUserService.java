@@ -24,13 +24,13 @@ import com.project.forde.mapper.TagMapper;
 import com.project.forde.repository.*;
 import com.project.forde.type.SocialTypeEnum;
 import com.project.forde.util.PasswordUtils;
+import com.project.forde.util.RedisStore;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -47,9 +47,9 @@ public class AppUserService {
     private final SnsRepository snsRepository;
     private final BoardRepository boardRepository;
     private final MailService mailService;
-    private final RedisTemplate<String, String> redisTemplate;
     private final BoardTagRepository boardTagRepository;
     private final LikeRepository likeRepository;
+    private final RedisStore redisStore;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
         AppUser user = this.getUser(userId);
@@ -209,18 +209,16 @@ public class AppUserService {
     public AppUserDto.Response.Intro getIntroUser() {
         Long userId = UserVerifyAspect.getUserId();
 
-        AppUser user = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser appUser = getUser(userId);
 
-        return AppUserMapper.INSTANCE.toResponseIntroUserDto(user);
+        return AppUserMapper.INSTANCE.toResponseIntroUserDto(appUser);
     }
 
     @UserVerify
-    public AppUserDto.Response.myInfo getMyInfo() {
+    public AppUserDto.Response.MyInfo getMyInfo() {
         Long userId = UserVerifyAspect.getUserId();
 
-        AppUser appUser = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser appUser = getUser(userId);
 
         List<InterestTag> interestTags = interestTagRepository.findAllById_AppUser(appUser);
         List<Long> interestTagIds = interestTags.stream()
@@ -233,11 +231,10 @@ public class AppUserService {
     }
 
     @UserVerify
-    public AppUserDto.Response.account getAccount() {
+    public AppUserDto.Response.Account getAccount() {
         Long userId = UserVerifyAspect.getUserId();
 
-        AppUser appUser = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser appUser = getUser(userId);
 
         List<Sns> sns = snsRepository.findAllByAppUser(appUser);
 
@@ -257,7 +254,7 @@ public class AppUserService {
 
     }
 
-    public List<AppUserDto.Response.searchUserNickname> getSearchUserNickname(final int page, final int count, String nickname) {
+    public List<AppUserDto.Response.SearchUserNickname> getSearchUserNickname(final int page, final int count, String nickname) {
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
 
         Page<AppUser> appUsers = appUserRepository.findAllByNicknameContaining(pageable, nickname);
@@ -266,10 +263,9 @@ public class AppUserService {
     }
 
     @UserVerify
-    public void updateMyInfo(AppUserDto.Request.updateMyInfo dto) {
+    public void updateMyInfo(AppUserDto.Request.UpdateMyInfo dto) {
         Long userId = UserVerifyAspect.getUserId();
-        AppUser appUser = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser appUser = getUser(userId);
 
         appUser.setNickname(dto.getNickname());
         appUser.setDescription(dto.getDescription());
@@ -293,15 +289,15 @@ public class AppUserService {
         interestTagRepository.saveAll(newInterestTag);
     }
 
-    public void createAppUser(AppUserDto.Request.signup request) {
-        Optional<AppUser> appUser = appUserRepository.findByEmail(request.getEmail());
+    public void createAppUser(AppUserDto.Request.Signup dto) {
+        Optional<AppUser> appUser = appUserRepository.findByEmail(dto.getEmail());
 
         if (appUser.isPresent()) { // 이메일 중복
             throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
         }
 
-        AppUser newUser = AppUserMapper.INSTANCE.toEntity(request);
-        newUser.setUserPw(PasswordUtils.encodePassword(request.getPassword()));
+        AppUser newUser = AppUserMapper.INSTANCE.toEntity(dto);
+        newUser.setUserPw(PasswordUtils.encodePassword(dto.getPassword()));
 
         String name;
         do {
@@ -309,7 +305,7 @@ public class AppUserService {
         } while (appUserRepository.findByEmail(name).isPresent());
         newUser.setNickname(name);
 
-        if(request.getIsEnableNotification()) {
+        if(dto.getIsEnableNotification()) {
             newUser.setRecommendNotification(true);
             newUser.setNoticeNotification(true);
             newUser.setCommentNotification(true);
@@ -317,7 +313,7 @@ public class AppUserService {
             newUser.setFollowNotification(true);
         }
 
-        if(request.getIsEnableEvent()) {
+        if(dto.getIsEnableEvent()) {
             newUser.setEventNotification(true);
         }
 
@@ -360,26 +356,24 @@ public class AppUserService {
     }
 
     @UserVerify
-    public void updatePassword(AppUserDto.Request.updatePassword dto) {
+    public void updatePassword(AppUserDto.Request.UpdatePassword dto) {
         Long userId = UserVerifyAspect.getUserId();
-        mailService.compareRandomKey(dto.getRandomKey());
+        mailService.verifyRandomKey(dto.getRandomKey());
 
-        AppUser appUser = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser appUser = getUser(userId);
 
         appUser.setUserPw(PasswordUtils.encodePassword(dto.getPassword()));
 
         appUserRepository.save(appUser);
 
-        redisTemplate.delete("email:randomKey:" + userId);
+        redisStore.deleteField("email:randomKey:" + userId, "randomKeyValue");
     }
 
     @UserVerify
-    public void updateSocialSetting(AppUserDto.Request.updateSocialSetting dto) {
+    public void updateSocialSetting(AppUserDto.Request.UpdateSocialSetting dto) {
         Long userId = UserVerifyAspect.getUserId();
 
-        AppUser appUser = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser appUser = getUser(userId);
 
         appUser.setDisableFollow(dto.getDisableFollow());
         appUser.setPrivateAccount(dto.getDisableAccount());
@@ -388,11 +382,10 @@ public class AppUserService {
     }
 
     @UserVerify
-    public void updateNotificationSetting(AppUserDto.Request.updateNotificationSetting dto) {
+    public void updateNotificationSetting(AppUserDto.Request.UpdateNotificationSetting dto) {
         Long userId = UserVerifyAspect.getUserId();
 
-        AppUser appUser = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser appUser = getUser(userId);
 
         appUser.setNoticeNotification(dto.getNoticeNotification());
         appUser.setCommentNotification(dto.getCommentNotification());
@@ -407,8 +400,7 @@ public class AppUserService {
     public void removeUser(HttpServletRequest request) {
         Long userId = UserVerifyAspect.getUserId();
 
-        AppUser appUser = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser appUser = getUser(userId);
 
         appUser.setDeleted(true);
         appUserRepository.save(appUser);
