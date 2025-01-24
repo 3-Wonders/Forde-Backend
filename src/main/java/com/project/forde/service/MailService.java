@@ -1,7 +1,9 @@
 package com.project.forde.service;
 
 import com.project.forde.annotation.ExtractUserId;
+import com.project.forde.annotation.UserVerify;
 import com.project.forde.aspect.ExtractUserIdAspect;
+import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.mail.MailDto;
 import com.project.forde.entity.AppUser;
 import com.project.forde.exception.CustomException;
@@ -20,6 +22,7 @@ public class MailService {
     private final JavaMailSender mailSender;
     private final AppUserRepository appUserRepository;
     private final RedisStore redisStore;
+    private final AppUserService appUserService;
 
     public void sendEmail(String receiver, String title, String content) {
         SimpleMailMessage message = new SimpleMailMessage();
@@ -52,21 +55,16 @@ public class MailService {
             throw new CustomException(ErrorCode.NOT_MATCHED_VERIFIED_CODE);
         }
 
-        AppUser appUser = appUserRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-
-        appUser.setVerified(true);
-
-        appUserRepository.save(appUser);
+        Long userId = appUserService.setUserVerify(dto.getEmail());
 
         redisStore.deleteField("email:verification:" + dto.getEmail(), "verificationCode");
 
-        return appUser.getUserId();
+        return userId;
     }
 
-    @ExtractUserId
+    @UserVerify
     public void verifyEmailPassword(MailDto.Request.EmailVerification dto) {
-        Long userId = ExtractUserIdAspect.getUserId();
+        Long userId = UserVerifyAspect.getUserId();
         appUserRepository.findByEmail(dto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
@@ -90,9 +88,7 @@ public class MailService {
         sendEmail(dto.getEmail(), title, content);
     }
 
-    @ExtractUserId
-    public void verifyRandomKey(String randomKey) {
-        Long userId = ExtractUserIdAspect.getUserId();
+    public void verifyRandomKey(Long userId, String randomKey) {
         String storedRandomKey = (String) redisStore.get("email:randomKey:" + userId, "randomKeyValue");
 
         if(storedRandomKey == null) {
@@ -101,5 +97,13 @@ public class MailService {
         if(!storedRandomKey.equals(randomKey)) {
             throw new CustomException(ErrorCode.NOT_MATCHED_RANDOM_KEY);
         }
+    }
+
+    @UserVerify
+    public void verifyRandomKeyWithUpdatePassword(MailDto.Request.UpdatePassword dto) {
+        Long userId = UserVerifyAspect.getUserId();
+        verifyRandomKey(userId, dto.getRandomKey());
+
+        appUserService.updatePassword(dto.getPassword());
     }
 }

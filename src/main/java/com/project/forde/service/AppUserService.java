@@ -46,7 +46,6 @@ public class AppUserService {
     private final TagRepository tagRepository;
     private final SnsRepository snsRepository;
     private final BoardRepository boardRepository;
-    private final MailService mailService;
     private final BoardTagRepository boardTagRepository;
     private final LikeRepository likeRepository;
     private final RedisStore redisStore;
@@ -328,12 +327,12 @@ public class AppUserService {
             throw new CustomException(ErrorCode.DELETED_USER);
         }
 
-        if(!PasswordUtils.checkPassword(dto.getPassword(), user.getUserPw())) {
-            throw new CustomException(ErrorCode.NOT_MATCHED_LOGIN_INFO);
-        }
-
         if(!user.getVerified()) {
             throw new CustomException(ErrorCode.NOT_VERIFIED_USER);
+        }
+
+        if(!PasswordUtils.checkPassword(dto.getPassword(), user.getUserPw())) {
+            throw new CustomException(ErrorCode.NOT_MATCHED_LOGIN_INFO);
         }
 
         return user.getUserId();
@@ -355,14 +354,24 @@ public class AppUserService {
         return newAppUser;
     }
 
+    public Long setUserVerify(String email) {
+        AppUser appUser = appUserRepository.findByEmail(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        appUser.setVerified(true);
+
+        appUserRepository.save(appUser);
+
+        return appUser.getUserId();
+    }
+
     @UserVerify
-    public void updatePassword(AppUserDto.Request.UpdatePassword dto) {
+    public void updatePassword(String passWord) {
         Long userId = UserVerifyAspect.getUserId();
-        mailService.verifyRandomKey(dto.getRandomKey());
 
         AppUser appUser = getUser(userId);
 
-        appUser.setUserPw(PasswordUtils.encodePassword(dto.getPassword()));
+        appUser.setUserPw(PasswordUtils.encodePassword(passWord));
 
         appUserRepository.save(appUser);
 

@@ -1,5 +1,7 @@
 package com.project.forde.controller;
 
+import com.project.forde.annotation.ExtractUserId;
+import com.project.forde.aspect.ExtractUserIdAspect;
 import com.project.forde.dto.RequestLoginDto;
 import com.project.forde.dto.mail.MailDto;
 import com.project.forde.dto.RequestUpdateProfileDto;
@@ -53,13 +55,13 @@ public class AppUserController {
     }
 
     @PostMapping(value = "/verify")
-    public ResponseEntity<?> sendVerificationCode(@Valid @RequestBody MailDto.Request.Send dto) {
+    public ResponseEntity<?> sendVerificationCode(@RequestBody @Valid MailDto.Request.Send dto) {
         mailService.sendVerificationCode(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/verify/compare")
-    public ResponseEntity<?> verifyEmail(@RequestBody MailDto.Request.EmailVerification dto, final HttpServletRequest request) {
+    public ResponseEntity<?> verifyEmail(@Valid @RequestBody MailDto.Request.EmailVerification dto, final HttpServletRequest request) {
         Long userId = mailService.verifyEmail(dto);
         final HttpSession session = request.getSession();
 
@@ -69,20 +71,22 @@ public class AppUserController {
     }
 
     @PostMapping(value = "/verify/compare/password")
-    public ResponseEntity<?> verifyEmailPassword(@RequestBody MailDto.Request.EmailVerification dto) {
+    public ResponseEntity<?> verifyEmailPassword(@Valid @RequestBody MailDto.Request.EmailVerification dto) {
         mailService.verifyEmailPassword(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/password/randomkey")
-    public ResponseEntity<?> verifyRandomKey(@RequestBody MailDto.Request.RandomKeyVerification dto) {
-        mailService.verifyRandomKey(dto.getRandomKey());
+    @ExtractUserId
+    public ResponseEntity<?> verifyRandomKey(@Valid @RequestBody MailDto.Request.RandomKeyVerification dto) {
+        Long userId = ExtractUserIdAspect.getUserId();
+        mailService.verifyRandomKey(userId, dto.getRandomKey());
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping(value = "/password")
-    public ResponseEntity<?> updatePassword(@RequestBody AppUserDto.Request.UpdatePassword dto) {
-        appUserService.updatePassword(dto);
+    public ResponseEntity<?> updatePassword(@Valid @RequestBody MailDto.Request.UpdatePassword dto) {
+        mailService.verifyRandomKeyWithUpdatePassword(dto);
         return ResponseEntity.noContent().build();
     }
 
@@ -148,19 +152,19 @@ public class AppUserController {
     }
 
     @PatchMapping(value = "/sns/setting")
-    public ResponseEntity<?> updateSocialSetting(@RequestBody @Valid AppUserDto.Request.UpdateSocialSetting dto) {
+    public ResponseEntity<?> updateSocialSetting(@Valid @RequestBody AppUserDto.Request.UpdateSocialSetting dto) {
         appUserService.updateSocialSetting(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping(value = "/notification")
-    public ResponseEntity<?> updateNotificationSetting(@RequestBody @Valid AppUserDto.Request.UpdateNotificationSetting dto) {
+    public ResponseEntity<?> updateNotificationSetting(@Valid @RequestBody AppUserDto.Request.UpdateNotificationSetting dto) {
         appUserService.updateNotificationSetting(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping(value = "")
-    public ResponseEntity<?> updateMyInfo(@RequestBody @Valid AppUserDto.Request.UpdateMyInfo dto) {
+    public ResponseEntity<?> updateMyInfo(@Valid @RequestBody AppUserDto.Request.UpdateMyInfo dto) {
         appUserService.updateMyInfo(dto);
         return ResponseEntity.noContent().build();
     }
