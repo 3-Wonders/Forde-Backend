@@ -21,10 +21,10 @@ public class MailDto {
 
         @Getter
         public static class EmailVerification {
-            @NotNull(message = "이메일을 입력해주세요.")
+            @NotBlank(message = "이메일을 입력해주세요.")
             @Email(message = "유효한 이메일을 입력해주세요.")
             private String email;
-            @NotNull(message = "인증 코드를 입력해주세요.")
+            @NotBlank(message = "인증 코드를 입력해주세요.")
             private String verifyCode;
         }
 
@@ -48,6 +48,17 @@ public class MailDto {
 
             @NotBlank(message = "랜덤키를 입력해주세요.")
             private String randomKey;
+        }
+
+        @Getter
+        public static class SetSnsEmail {
+            @NotBlank
+            private String snsId;
+            @NotBlank(message = "이메일을 입력해주세요.")
+            @Email(message = "유효한 이메일을 입력해주세요.")
+            private String email;
+            @NotBlank(message = "인증 코드를 입력해주세요.")
+            private String verifyCode;
         }
     }
 }

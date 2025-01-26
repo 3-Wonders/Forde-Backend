@@ -90,6 +90,16 @@ public class AppUserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping(value = "/verify/compare/sns")
+    public ResponseEntity<?> setSnsUserEmail(@Valid @RequestBody MailDto.Request.SetSnsEmail dto, final HttpServletRequest request) {
+        Long userId = mailService.verifyEmailCodeWithSetSnsEmail(dto);
+        final HttpSession session = request.getSession();
+
+        session.setAttribute("userId", userId);
+
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/intro")
     public ResponseEntity<?> getIntroUser() {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getIntroUser());
@@ -131,6 +141,15 @@ public class AppUserController {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserLikeBoard(userId, page, count));
     }
 
+    @GetMapping(value = "/{user_id}/comment")
+    public ResponseEntity<?> getUserCommentBoards(
+            @PathVariable(value = "user_id") Long userId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserBoardsWithComments(userId, page, count));
+    }
+
     @GetMapping("")
     public ResponseEntity<?> getMyInfoUser() {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getMyInfo());
@@ -166,6 +185,12 @@ public class AppUserController {
     @PatchMapping(value = "")
     public ResponseEntity<?> updateMyInfo(@Valid @RequestBody AppUserDto.Request.UpdateMyInfo dto) {
         appUserService.updateMyInfo(dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping(value = "/verify/compare")
+    public ResponseEntity<?> updateEmail(@Valid @RequestBody MailDto.Request.EmailVerification dto) {
+        mailService.verifyEmailCodeWithUpdateEmail(dto);
         return ResponseEntity.noContent().build();
     }
 
