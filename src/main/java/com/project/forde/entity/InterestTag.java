@@ -19,6 +19,6 @@ public class InterestTag {
     private InterestTagPK id;
 
     @CreationTimestamp
-    @Column(name = "created_time", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdTime;
 }
