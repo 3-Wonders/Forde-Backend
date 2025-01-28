@@ -43,10 +43,10 @@ public class ActivityLog {
     @Enumerated(EnumType.STRING)
     private LogTypeEnum logType;
 
-    @Column(name = "duration", nullable = false, columnDefinition = "INT UNSIGNED")
+    @Column(name = "duration", columnDefinition = "INT UNSIGNED")
     private Long duration;
 
-    @Column(name = "revisit_count", nullable = false, columnDefinition = "INT UNSIGNED")
+    @Column(name = "revisit_count", columnDefinition = "INT UNSIGNED")
     private Long revisitCount;
 
     @Column(name = "keyword", length = 255)
