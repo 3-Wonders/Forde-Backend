@@ -6,6 +6,7 @@ import com.project.forde.annotation.ExtractUserId;
 import com.project.forde.annotation.UserVerify;
 import com.project.forde.aspect.ExtractUserIdAspect;
 import com.project.forde.aspect.UserVerifyAspect;
+import com.project.forde.dto.activityLog.ActivityLogEventDto;
 import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
@@ -23,6 +24,7 @@ import com.project.forde.util.CustomTimestamp;
 import com.project.forde.util.FileStore;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -49,6 +51,7 @@ public class BoardService {
     private final BoardImageService boardImageService;
     private final AppUserService appUserService;
 
+    private final ApplicationEventPublisher publisher;
     private final FileStore fileStore;
 
     private BoardDto.Response.Boards createBoardsDto(Page<Board> boards) {
@@ -83,9 +86,19 @@ public class BoardService {
         return createBoardsDto(boards);
     }
 
+    @ExtractUserId
     public BoardDto.Response.Boards getSearchPosts(final int page, final int count, final String keyword) {
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
         Page<Board> boards = boardRepository.findALlByTitleContainingOrderByCreatedTimeDesc(pageable, keyword);
+
+        Long userId = ExtractUserIdAspect.getUserId();
+
+        if (userId != null) {
+            publisher.publishEvent(new ActivityLogEventDto.Create.Search(
+                appUserService.getUser(userId),
+                keyword
+            ));
+        }
 
         return createBoardsDto(boards);
     }
@@ -106,6 +119,7 @@ public class BoardService {
         return createBoardsDto(boards);
     }
 
+    @ExtractUserId
     public BoardDto.Response.Detail getPost(final Long boardId) {
         Board board = boardRepository.findBoardIncludeUploaderByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -114,8 +128,17 @@ public class BoardService {
         List<Tag> tags = boardTags.stream().map(tag -> tag.getBoardTagPK().getTag()).toList();
         List<TagDto.Response.TagWithoutCount> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
 
-        // TODO : userId가 존재한다면 (로그인 상태라면) 조회수 증가
-        // viewService.createView(userId, boardId);
+        Long userId = ExtractUserIdAspect.getUserId();
+
+        if (userId != null) {
+            // TODO : userId가 존재한다면 (로그인 상태라면) 조회수 증가
+            // viewService.createView(userId, boardId);
+
+            publisher.publishEvent(new ActivityLogEventDto.Create.Revisit(
+                appUserService.getUser(userId),
+                board
+            ));
+        }
 
         return BoardMapper.INSTANCE.toDetail(board, responseTags);
     }

@@ -1,5 +1,6 @@
 package com.project.forde.entity;
 
+import com.project.forde.converter.LogTypeConverter;
 import com.project.forde.type.LogTypeEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -40,7 +41,7 @@ public class ActivityLog {
     private Board board;
 
     @Column(name = "log_type", nullable = false)
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = LogTypeConverter.class)
     private LogTypeEnum logType;
 
     @Column(name = "duration", columnDefinition = "INT UNSIGNED")
