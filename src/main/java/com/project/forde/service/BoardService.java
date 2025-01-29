@@ -132,7 +132,7 @@ public class BoardService {
 
         if (userId != null) {
             // TODO : userId가 존재한다면 (로그인 상태라면) 조회수 증가
-            // viewService.createView(userId, boardId);
+            viewService.createView(userId, boardId);
 
             publisher.publishEvent(new ActivityLogEventDto.Create.Revisit(
                 appUserService.getUser(userId),
