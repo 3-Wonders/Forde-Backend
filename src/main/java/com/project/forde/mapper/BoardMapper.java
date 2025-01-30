@@ -5,6 +5,7 @@ import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Board;
+import com.project.forde.projection.RecommendNewsProjection;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -62,4 +63,10 @@ public interface BoardMapper {
     @Mapping(source = "imageIds", target = "imageIds")
     @Mapping(source = "board.createdTime", target = "createdTime", qualifiedBy = { MapCreatedTime.class, CustomTimestampTranslator.class })
     BoardDto.Response.Update toUpdatePost(Board board, List<TagDto.Response.TagWithoutCount> tags, List<Long> imageIds);
+
+    @Mapping(source = "boardId", target = "boardId")
+    @Mapping(source = "thumbnail", target = "thumbnail")
+    @Mapping(source = "title", target = "title")
+    @Mapping(source = "nickname", target = "nickname")
+    BoardDto.Response.RecommendNews.Item toRecommendNewsItem(Long boardId, String thumbnail, String title, String nickname);
 }

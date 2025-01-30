@@ -1,7 +1,9 @@
 package com.project.forde.dto.board;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.dto.tag.TagDto;
+import com.project.forde.projection.RecommendNewsProjection;
 import com.project.forde.type.BoardTypeEnum;
 import com.project.forde.type.ImageActionEnum;
 import com.project.forde.validation.EnumValue;
@@ -10,6 +12,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -97,7 +100,6 @@ public class BoardDto {
         @Setter
         @AllArgsConstructor
         public static class Boards {
-
             @Getter
             @Setter
             @AllArgsConstructor
@@ -116,6 +118,21 @@ public class BoardDto {
 
             private List<Board> boards;
             private Long total;
+        }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        @NoArgsConstructor
+        public static class RecommendNews {
+            public record Item (
+                    Long boardId,
+                    String thumbnail,
+                    String title,
+                    String nickname
+            ) {}
+
+            private List<Item> boards;
         }
 
         @Getter

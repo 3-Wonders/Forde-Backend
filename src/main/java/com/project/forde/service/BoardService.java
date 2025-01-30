@@ -14,6 +14,7 @@ import com.project.forde.entity.composite.BoardTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.*;
+import com.project.forde.projection.RecommendNewsProjection;
 import com.project.forde.repository.*;
 
 import com.project.forde.type.BoardTypeEnum;
@@ -22,11 +23,11 @@ import com.project.forde.type.ImagePathEnum;
 import com.project.forde.type.SortBoardTypeEnum;
 import com.project.forde.util.CustomTimestamp;
 import com.project.forde.util.FileStore;
+import com.project.forde.util.RedisStore;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -39,6 +40,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BoardService {
+    public static final String NEWS_STORE_KEY = "recommend:news:";
+    public static final String BOARD_STORE_KEY = "recommend:board:";
+    public static final Long TTL = 60L;
+
     private final BoardRepository boardRepository;
     private final TagRepository tagRepository;
     private final BoardTagRepository boardTagRepository;
@@ -50,9 +55,11 @@ public class BoardService {
     private final BoardTagService boardTagService;
     private final BoardImageService boardImageService;
     private final AppUserService appUserService;
+    private final RecommendService recommendService;
 
     private final ApplicationEventPublisher publisher;
     private final FileStore fileStore;
+    private final RedisStore redisStore;
 
     private BoardDto.Response.Boards createBoardsDto(Page<Board> boards) {
         List<BoardTag> boardTags = boardTagRepository.findAllByBoardTagPK_BoardIn(boards.toList());
@@ -131,7 +138,6 @@ public class BoardService {
         Long userId = ExtractUserIdAspect.getUserId();
 
         if (userId != null) {
-            // TODO : userId가 존재한다면 (로그인 상태라면) 조회수 증가
             viewService.createView(userId, boardId);
 
             publisher.publishEvent(new ActivityLogEventDto.Create.Revisit(
@@ -175,6 +181,45 @@ public class BoardService {
         Page<Board> boards = boardRepository.findAllByMonthlyNews(pageable);
 
         return createBoardsDto(boards);
+    }
+
+    private BoardDto.Response.RecommendNews fetchRecommendNews() {
+        List<RecommendNewsProjection> recommendNews = recommendService.getRecommendNews();
+        List<BoardDto.Response.RecommendNews.Item> boards = recommendNews.stream().map(
+            recommendNewsProjection -> BoardMapper.INSTANCE.toRecommendNewsItem(
+                recommendNewsProjection.getBoardId(),
+                recommendNewsProjection.getThumbnail(),
+                recommendNewsProjection.getTitle(),
+                recommendNewsProjection.getNickname()
+            )
+        ).toList();
+
+        return new BoardDto.Response.RecommendNews(boards);
+    }
+
+    @ExtractUserId
+    public BoardDto.Response.RecommendNews getRecommendNews() {
+        Long userId = ExtractUserIdAspect.getUserId();
+
+        if (userId == null) {
+            return redisStore.getJson(
+                    NEWS_STORE_KEY + "anonymous",
+                    BoardDto.Response.RecommendNews.class
+            ).orElseGet(() -> {
+                BoardDto.Response.RecommendNews recommendNews = fetchRecommendNews();
+                redisStore.setJson(NEWS_STORE_KEY + "anonymous", recommendNews, TTL);
+                return recommendNews;
+            });
+        }
+
+        return redisStore.getJson(
+                NEWS_STORE_KEY + userId,
+                BoardDto.Response.RecommendNews.class
+        ).orElseGet(() -> {
+            BoardDto.Response.RecommendNews recommendNews = fetchRecommendNews();
+            redisStore.setJson(NEWS_STORE_KEY + userId, recommendNews, TTL);
+            return recommendNews;
+        });
     }
 
     @Transactional
