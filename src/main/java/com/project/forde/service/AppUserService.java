@@ -11,16 +11,14 @@ import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
+import com.project.forde.entity.composite.FollowPK;
 import com.project.forde.entity.composite.InterestTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
-import com.project.forde.mapper.AppUserMapper;
-import com.project.forde.mapper.BoardMapper;
+import com.project.forde.mapper.*;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.type.AppUserCount;
 import com.project.forde.type.BoardTypeEnum;
-import com.project.forde.mapper.InterestTagMapper;
-import com.project.forde.mapper.TagMapper;
 import com.project.forde.repository.*;
 import com.project.forde.type.SocialTypeEnum;
 import com.project.forde.util.PasswordUtils;
@@ -367,6 +365,16 @@ public class AppUserService {
         }
 
         interestTagRepository.saveAll(newInterestTag);
+    }
+
+    @UserVerify
+    public void following(Long receiverId) {
+        Long userId = UserVerifyAspect.getUserId();
+
+        AppUser sender = getUser(userId);
+        AppUser receiver = getUser(receiverId);
+
+        FollowPK followPK = FollowMapper.INSTANCE.toFollowPK(sender, receiver);
     }
 
     /**

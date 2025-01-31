@@ -1,7 +1,6 @@
 package com.project.forde.mapper;
 
 import com.project.forde.entity.AppUser;
-import com.project.forde.entity.InterestTag;
 import com.project.forde.entity.Tag;
 import com.project.forde.entity.composite.InterestTagPK;
 import org.mapstruct.Mapper;
