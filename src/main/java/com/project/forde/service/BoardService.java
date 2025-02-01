@@ -14,7 +14,7 @@ import com.project.forde.entity.composite.BoardTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.*;
-import com.project.forde.projection.RecommendNewsProjection;
+import com.project.forde.projection.IntroPostProjection;
 import com.project.forde.repository.*;
 
 import com.project.forde.type.BoardTypeEnum;
@@ -33,6 +33,7 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -170,23 +171,26 @@ public class BoardService {
     }
 
     public BoardDto.Response.Boards getDailyNews(final int page, final int count) {
+        CustomTimestamp now = new CustomTimestamp();
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
-        Page<Board> boards = boardRepository.findAllByDailyNews(pageable);
+        Page<Board> boards = boardRepository.findAllByDailyNews(pageable, now.getLastDay());
 
         return createBoardsDto(boards);
     }
 
     public BoardDto.Response.Boards getMonthlyNews(final int page, final int count) {
+        CustomTimestamp now = new CustomTimestamp();
+
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
-        Page<Board> boards = boardRepository.findAllByMonthlyNews(pageable);
+        Page<Board> boards = boardRepository.findAllByMonthlyNews(pageable, now.getLastMonth());
 
         return createBoardsDto(boards);
     }
 
-    private BoardDto.Response.RecommendNews fetchRecommendNews() {
-        List<RecommendNewsProjection> recommendNews = recommendService.getRecommendNews();
-        List<BoardDto.Response.RecommendNews.Item> boards = recommendNews.stream().map(
-            recommendNewsProjection -> BoardMapper.INSTANCE.toRecommendNewsItem(
+    private BoardDto.Response.IntroPost fetchRecommendNews() {
+        List<IntroPostProjection> recommendNews = recommendService.getRecommendNews();
+        List<BoardDto.Response.IntroPost.Item> boards = recommendNews.stream().map(
+            recommendNewsProjection -> BoardMapper.INSTANCE.toIntroPostItem(
                 recommendNewsProjection.getBoardId(),
                 recommendNewsProjection.getThumbnail(),
                 recommendNewsProjection.getTitle(),
@@ -194,19 +198,19 @@ public class BoardService {
             )
         ).toList();
 
-        return new BoardDto.Response.RecommendNews(boards);
+        return new BoardDto.Response.IntroPost(boards);
     }
 
     @ExtractUserId
-    public BoardDto.Response.RecommendNews getRecommendNews() {
+    public BoardDto.Response.IntroPost getRecommendNews() {
         Long userId = ExtractUserIdAspect.getUserId();
 
         if (userId == null) {
             return redisStore.getJson(
                     NEWS_STORE_KEY + "anonymous",
-                    BoardDto.Response.RecommendNews.class
+                    BoardDto.Response.IntroPost.class
             ).orElseGet(() -> {
-                BoardDto.Response.RecommendNews recommendNews = fetchRecommendNews();
+                BoardDto.Response.IntroPost recommendNews = fetchRecommendNews();
                 redisStore.setJson(NEWS_STORE_KEY + "anonymous", recommendNews, TTL);
                 return recommendNews;
             });
@@ -214,12 +218,28 @@ public class BoardService {
 
         return redisStore.getJson(
                 NEWS_STORE_KEY + userId,
-                BoardDto.Response.RecommendNews.class
+                BoardDto.Response.IntroPost.class
         ).orElseGet(() -> {
-            BoardDto.Response.RecommendNews recommendNews = fetchRecommendNews();
+            BoardDto.Response.IntroPost recommendNews = fetchRecommendNews();
             redisStore.setJson(NEWS_STORE_KEY + userId, recommendNews, TTL);
             return recommendNews;
         });
+    }
+
+    public BoardDto.Response.IntroPost getPopularPosts() {
+        CustomTimestamp now = new CustomTimestamp();
+
+        List<IntroPostProjection> recommendNews = boardRepository.findAllByMonthlyPosts(now.getLastMonth());
+        List<BoardDto.Response.IntroPost.Item> boards = recommendNews.stream().map(
+            recommendNewsProjection -> BoardMapper.INSTANCE.toIntroPostItem(
+                recommendNewsProjection.getBoardId(),
+                recommendNewsProjection.getThumbnail(),
+                recommendNewsProjection.getTitle(),
+                recommendNewsProjection.getNickname()
+            )
+        ).toList();
+
+        return new BoardDto.Response.IntroPost(boards);
     }
 
     @Transactional

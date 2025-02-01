@@ -1,6 +1,6 @@
 package com.project.forde.service;
 
-import com.project.forde.projection.RecommendNewsProjection;
+import com.project.forde.projection.IntroPostProjection;
 import com.project.forde.repository.BoardRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,8 +22,8 @@ public class RecommendService {
      *
      * @return 추천 뉴스 리스트
      */
-    public List<RecommendNewsProjection> getRecommendNews() {
-        List<RecommendNewsProjection> recommendNews = boardRepository.findAllByRecommendNewsInThreeMonth();
+    public List<IntroPostProjection> getRecommendNews() {
+        List<IntroPostProjection> recommendNews = boardRepository.findAllByRecommendNewsInThreeMonth();
         Collections.shuffle(recommendNews);
 
         return recommendNews.subList(0, 10);

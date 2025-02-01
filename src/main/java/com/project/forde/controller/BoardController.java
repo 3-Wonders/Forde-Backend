@@ -105,6 +105,11 @@ public class BoardController {
         return ResponseEntity.ok(boardService.getRecommendNews());
     }
 
+    @GetMapping("/board/popular")
+    public ResponseEntity<?> getPopularPosts() {
+        return ResponseEntity.ok(boardService.getPopularPosts());
+    }
+
     @PostMapping(value = "/board", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<?> createBoard(@Valid @ModelAttribute final BoardDto.Request.Create request) {
         Long boardId = boardService.create(request);

@@ -1,9 +1,7 @@
 package com.project.forde.dto.board;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.dto.tag.TagDto;
-import com.project.forde.projection.RecommendNewsProjection;
 import com.project.forde.type.BoardTypeEnum;
 import com.project.forde.type.ImageActionEnum;
 import com.project.forde.validation.EnumValue;
@@ -124,7 +122,7 @@ public class BoardDto {
         @Setter
         @AllArgsConstructor
         @NoArgsConstructor
-        public static class RecommendNews {
+        public static class IntroPost {
             public record Item (
                     Long boardId,
                     String thumbnail,

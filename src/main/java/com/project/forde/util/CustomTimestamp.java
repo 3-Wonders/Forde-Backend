@@ -16,6 +16,14 @@ public class CustomTimestamp {
         this.timestamp = LocalDateTime.now(ZoneId.of("Asia/Seoul"));
     }
 
+    public String getLastDay() {
+        return this.timestamp.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+
+    public String getLastMonth() {
+        return this.timestamp.minusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM"));
+    }
+
     @Override
     public String toString() {
         return this.timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

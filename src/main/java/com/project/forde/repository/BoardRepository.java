@@ -2,7 +2,7 @@ package com.project.forde.repository;
 
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Board;
-import com.project.forde.projection.RecommendNewsProjection;
+import com.project.forde.projection.IntroPostProjection;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -53,20 +53,19 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
             value = "SELECT b FROM Board b " +
                     "JOIN FETCH b.uploader u " +
                     "WHERE b.category = 'N' " +
-                    "AND FUNCTION('DATE_FORMAT', b.createdTime, '%Y-%m-%d') = FUNCTION('CURDATE') " +
+                    "AND FUNCTION('DATE_FORMAT', b.createdTime, '%Y-%m-%d') = :lastDay " +
                     "ORDER BY b.viewCount DESC, b.likeCount DESC, b.commentCount DESC, b.boardId DESC "
     )
-    Page<Board> findAllByDailyNews(Pageable pageable);
+    Page<Board> findAllByDailyNews(Pageable pageable, @Param("lastDay") String lastDay);
 
     @Query(
             value = "SELECT b FROM Board b " +
                     "JOIN FETCH b.uploader u " +
                     "WHERE b.category = 'N' " +
-                        "AND CAST(FUNCTION('DATE_FORMAT', b.createdTime, '%Y-%m-%d') AS string) " +
-                        "LIKE CAST(CONCAT(FUNCTION('DATE_FORMAT', FUNCTION('NOW'), '%Y-%m'), '%') as string) " +
+                        "AND FUNCTION('DATE_FORMAT', b.createdTime, '%Y-%m') = :lastMonth " +
                     "ORDER BY b.viewCount DESC, b.likeCount DESC, b.commentCount DESC, b.boardId DESC "
     )
-    Page<Board> findAllByMonthlyNews(Pageable pageable);
+    Page<Board> findAllByMonthlyNews(Pageable pageable, @Param("lastMonth") String lastMonth);
 
     @Query(
             value = "WITH ranked_posts AS ( " +
@@ -76,8 +75,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
                         "JOIN board_tag bt ON b.board_id = bt.board_id " +
                         "JOIN tag t ON bt.tag_id = t.tag_id " +
                         "JOIN app_user u ON b.uploader_id = u.user_id " +
-                        "    WHERE b.created_time BETWEEN DATE_ADD(NOW(), INTERVAL -3 MONTH) AND NOW() " +
-                        "     AND b.category = 'N' " +
+                        "WHERE b.created_time BETWEEN DATE_ADD(NOW(), INTERVAL -3 MONTH) AND NOW() " +
+                            "AND b.category = 'N' " +
                     ") " +
                     "SELECT board_id, title, thumbnail_path AS thumbnail, nickname AS nickname FROM ranked_posts " +
                     "WHERE row_num <= 10 " +
@@ -85,5 +84,15 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
                     "LIMIT 100;"
             , nativeQuery = true
     )
-    List<RecommendNewsProjection> findAllByRecommendNewsInThreeMonth();
+    List<IntroPostProjection> findAllByRecommendNewsInThreeMonth();
+
+    @Query(
+            value = "SELECT b.boardId AS boardId, b.title AS title, b.thumbnailPath AS thumbnail, u.nickname AS nickname FROM Board b " +
+                    "JOIN b.uploader u " +
+                    "WHERE b.category <> 'N' " +
+                        "AND FUNCTION('DATE_FORMAT', b.createdTime, '%Y-%m') = :lastMonth " +
+                    "ORDER BY b.viewCount DESC, b.likeCount DESC, b.commentCount DESC, b.boardId DESC " +
+                    "LIMIT 10"
+    )
+    List<IntroPostProjection> findAllByMonthlyPosts(@Param("lastMonth") String lastMonth);
 }
