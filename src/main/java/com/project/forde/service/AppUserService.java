@@ -367,16 +367,6 @@ public class AppUserService {
         interestTagRepository.saveAll(newInterestTag);
     }
 
-    @UserVerify
-    public void following(Long receiverId) {
-        Long userId = UserVerifyAspect.getUserId();
-
-        AppUser sender = getUser(userId);
-        AppUser receiver = getUser(receiverId);
-
-        FollowPK followPK = FollowMapper.INSTANCE.toFollowPK(sender, receiver);
-    }
-
     /**
      * 회원가입을 수행합니다.
      * 1. 이메일 형식을 가지지 못하면 에러가 발생합니다.

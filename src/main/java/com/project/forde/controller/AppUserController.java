@@ -7,6 +7,7 @@ import com.project.forde.dto.mail.MailDto;
 import com.project.forde.dto.RequestUpdateProfileDto;
 import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.service.AppUserService;
+import com.project.forde.service.FollowService;
 import com.project.forde.service.MailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class AppUserController {
     private final AppUserService appUserService;
     private final MailService mailService;
+    private final FollowService followService;
 
     @GetMapping("/{user_id}")
     public ResponseEntity<?> getOtherUser(@PathVariable(value = "user_id") Long userId) {
@@ -96,6 +98,27 @@ public class AppUserController {
         final HttpSession session = request.getSession();
 
         session.setAttribute("userId", userId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/following/{to_user_id}")
+    public ResponseEntity<?> requestFollowing(@PathVariable(value = "to_user_id") Long toUserId) {
+        followService.requestFollowing(toUserId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/following/accept/{notification_id}")
+    public ResponseEntity<?> acceptFollowing(@PathVariable(value = "notification_id") Long notificationId) {
+        followService.acceptFollowRequest(notificationId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping(value = "/following/{to_user_id}")
+    public ResponseEntity<?> removeFollowing(@PathVariable(value = "to_user_id") Long toUserId) {
+        followService.removeFollowing(toUserId);
 
         return ResponseEntity.noContent().build();
     }
