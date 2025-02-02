@@ -217,6 +217,12 @@ public class AppUserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping(value = "/profile")
+    public ResponseEntity<?> updateProfile(@RequestBody AppUserDto.Request.UpdateProfileImage dto) {
+        appUserService.updateProfileImage(dto);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping(value = "")
     public ResponseEntity<?> removeUser(final HttpServletRequest request) {
         appUserService.removeUser(request);

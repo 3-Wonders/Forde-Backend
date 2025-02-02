@@ -1,11 +1,13 @@
 package com.project.forde.dto.appuser;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -61,6 +63,16 @@ public class AppUserDto {
             private String nickname;
             private String description;
             private List<Long> interestTags;
+        }
+
+        @Getter
+        public static class UpdateProfileImage {
+            private final MultipartFile image;
+
+            @JsonCreator
+            public UpdateProfileImage(MultipartFile image) {
+                this.image = image;
+            }
         }
     }
 

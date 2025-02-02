@@ -4,6 +4,7 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
 import com.project.forde.annotation.UserVerify;
 import com.project.forde.aspect.UserVerifyAspect;
+import com.project.forde.dto.FileDto;
 import com.project.forde.dto.RequestLoginDto;
 import com.project.forde.dto.ResponseOtherUserDto;
 import com.project.forde.dto.appuser.AppUserDto;
@@ -11,16 +12,17 @@ import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
-import com.project.forde.entity.composite.FollowPK;
 import com.project.forde.entity.composite.InterestTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
+import com.project.forde.exception.FileUploadException;
 import com.project.forde.mapper.*;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.type.AppUserCount;
 import com.project.forde.type.BoardTypeEnum;
 import com.project.forde.repository.*;
 import com.project.forde.type.SocialTypeEnum;
+import com.project.forde.util.FileStore;
 import com.project.forde.util.PasswordUtils;
 import com.project.forde.util.RedisStore;
 import jakarta.servlet.http.HttpServletRequest;
@@ -48,6 +50,7 @@ public class AppUserService {
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
     private final RedisStore redisStore;
+    private final FileStore fileStore;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
         AppUser user = this.getUser(userId);
@@ -562,6 +565,35 @@ public class AppUserService {
         appUser.setRecommendNotification(dto.getRecommendNotification());
         appUser.setEventNotification(dto.getEventNotification());
         appUserRepository.save(appUser);
+    }
+
+    /**
+     * 사용자의 프로필 이미지를 변경합니다.
+     * @param dto 프로필 이미지가 담긴 dto
+     */
+    @UserVerify
+    public void updateProfileImage(AppUserDto.Request.UpdateProfileImage dto) {
+        Long userId = UserVerifyAspect.getUserId();
+
+        AppUser appUser = getUser(userId);
+
+        FileDto file = null;
+
+        try {
+            file = fileStore.storeFile("profile/" + userId, dto.getImage());
+            fileStore.deleteFile(appUser.getProfilePath());
+
+            appUser.setProfilePath(file.getStorePath());
+            appUser.setProfileSize(file.getSize());
+            appUser.setProfileType(file.getExtension());
+
+            appUserRepository.save(appUser);
+        }
+        catch(Exception e) {
+            if (file != null) {
+                throw new FileUploadException(file.getStorePath());
+            }
+        }
     }
 
     /**
