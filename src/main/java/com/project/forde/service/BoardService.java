@@ -42,8 +42,10 @@ import java.util.stream.Collectors;
 @Transactional(readOnly = true)
 public class BoardService {
     public static final String NEWS_STORE_KEY = "recommend:news:";
-    public static final String BOARD_STORE_KEY = "recommend:board:";
-    public static final Long TTL = 60L;
+    public static final String NEWS_STORE_KEY_COLD_START = "recommend:news:coldstart:";
+
+    // 3시간
+    public static final Long TTL = 60L * 3L;
 
     private final BoardRepository boardRepository;
     private final TagRepository tagRepository;
@@ -216,21 +218,27 @@ public class BoardService {
             });
         }
 
-        return redisStore.getJson(
+        Optional<BoardDto.Response.IntroPost> recommendNews = redisStore.getJson(
                 NEWS_STORE_KEY + userId,
                 BoardDto.Response.IntroPost.class
-        ).orElseGet(() -> {
-            BoardDto.Response.IntroPost recommendNews = fetchRecommendNews();
-            redisStore.setJson(NEWS_STORE_KEY + userId, recommendNews, TTL);
-            return recommendNews;
-        });
+        );
+
+        return recommendNews.orElseGet(() -> redisStore.getJson(
+                        NEWS_STORE_KEY_COLD_START + userId,
+                        BoardDto.Response.IntroPost.class
+                )
+                .orElseGet(() -> {
+                    BoardDto.Response.IntroPost recommendNewsData = fetchRecommendNews();
+                    redisStore.setJson(NEWS_STORE_KEY_COLD_START + userId, recommendNewsData, TTL);
+                    return recommendNewsData;
+                }));
     }
 
     public BoardDto.Response.IntroPost getPopularPosts() {
         CustomTimestamp now = new CustomTimestamp();
 
-        List<IntroPostProjection> recommendNews = boardRepository.findAllByMonthlyPosts(now.getLastMonth());
-        List<BoardDto.Response.IntroPost.Item> boards = recommendNews.stream().map(
+        List<IntroPostProjection> recommendWithoutNews = boardRepository.findAllByMonthlyPosts(now.getLastMonth());
+        List<BoardDto.Response.IntroPost.Item> boards = recommendWithoutNews.stream().map(
             recommendNewsProjection -> BoardMapper.INSTANCE.toIntroPostItem(
                 recommendNewsProjection.getBoardId(),
                 recommendNewsProjection.getThumbnail(),
