@@ -578,7 +578,6 @@ public class AppUserService {
         AppUser appUser = getUser(userId);
 
         FileDto file = null;
-
         try {
             file = fileStore.storeFile("profile/" + userId, dto.getImage());
             fileStore.deleteFile(appUser.getProfilePath());
@@ -586,7 +585,7 @@ public class AppUserService {
             appUser.setProfilePath(file.getStorePath());
             appUser.setProfileSize(file.getSize());
             appUser.setProfileType(file.getExtension());
-
+            
             appUserRepository.save(appUser);
         }
         catch(Exception e) {

@@ -1,11 +1,14 @@
 package com.project.forde.dto.appuser;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
+import com.project.forde.validation.ValidFile;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -67,13 +70,13 @@ public class AppUserDto {
 
         @Getter
         public static class UpdateProfileImage {
+            @ValidFile(message = "프로필 사진은 필수입니다.")
             private final MultipartFile image;
 
             @JsonCreator
-            public UpdateProfileImage(MultipartFile image) {
-                this.image = image;
-            }
+            public UpdateProfileImage(MultipartFile image) {this.image = image;}
         }
+
     }
 
     public static class Response {
