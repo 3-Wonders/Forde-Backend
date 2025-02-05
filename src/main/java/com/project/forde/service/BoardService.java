@@ -139,9 +139,10 @@ public class BoardService {
         List<TagDto.Response.TagWithoutCount> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
 
         Long userId = ExtractUserIdAspect.getUserId();
+        boolean isCreated = false;
 
         if (userId != null) {
-            viewService.createView(userId, boardId);
+            isCreated = viewService.createView(userId, boardId);
 
             publisher.publishEvent(new ActivityLogEventDto.Create.Revisit(
                 appUserService.getUser(userId),
@@ -149,7 +150,12 @@ public class BoardService {
             ));
         }
 
-        return BoardMapper.INSTANCE.toDetail(board, responseTags);
+        BoardDto.Response.Detail response = BoardMapper.INSTANCE.toDetail(board, responseTags);
+        if (isCreated) {
+            response.setViewCount(response.getViewCount() + 1);
+        }
+
+        return response;
     }
 
     @UserVerify
@@ -184,7 +190,7 @@ public class BoardService {
         CustomTimestamp now = new CustomTimestamp();
 
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
-        Page<Board> boards = boardRepository.findAllByMonthlyNews(pageable, now.getLastMonth());
+        Page<Board> boards = boardRepository.findAllByMonthlyNews(pageable, now.getNMonth(1));
 
         return createBoardsDto(boards);
     }
@@ -237,7 +243,7 @@ public class BoardService {
     public BoardDto.Response.IntroPost getPopularPosts() {
         CustomTimestamp now = new CustomTimestamp();
 
-        List<IntroPostProjection> recommendWithoutNews = boardRepository.findAllByMonthlyPosts(now.getLastMonth());
+        List<IntroPostProjection> recommendWithoutNews = boardRepository.findAllByMonthlyPosts(now.getNMonth(1));
         List<BoardDto.Response.IntroPost.Item> boards = recommendWithoutNews.stream().map(
             recommendNewsProjection -> BoardMapper.INSTANCE.toIntroPostItem(
                 recommendNewsProjection.getBoardId(),

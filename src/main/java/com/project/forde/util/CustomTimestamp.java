@@ -20,8 +20,8 @@ public class CustomTimestamp {
         return this.timestamp.minusDays(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
-    public String getLastMonth() {
-        return this.timestamp.minusMonths(1).format(DateTimeFormatter.ofPattern("yyyy-MM"));
+    public String getNMonth(int n) {
+        return this.timestamp.minusMonths(n).format(DateTimeFormatter.ofPattern("yyyy-MM"));
     }
 
     @Override

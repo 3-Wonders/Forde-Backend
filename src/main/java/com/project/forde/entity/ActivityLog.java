@@ -3,8 +3,11 @@ package com.project.forde.entity;
 import com.project.forde.converter.LogTypeConverter;
 import com.project.forde.type.LogTypeEnum;
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.checkerframework.checker.units.qual.A;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.OnDelete;
@@ -14,6 +17,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
+@NoArgsConstructor
 @Entity
 @Table(
         name = "activity_log",
@@ -56,4 +60,14 @@ public class ActivityLog {
     @CreationTimestamp
     @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdTime;
+
+    @Builder
+    public ActivityLog(AppUser user, Board board, LogTypeEnum logType, Long duration, Long revisitCount, String keyword) {
+        this.user = user;
+        this.board = board;
+        this.logType = logType;
+        this.duration = duration;
+        this.revisitCount = revisitCount;
+        this.keyword = keyword;
+    }
 }
