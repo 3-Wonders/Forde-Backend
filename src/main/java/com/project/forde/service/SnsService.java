@@ -23,7 +23,6 @@ import java.util.Optional;
 public class SnsService extends DefaultOAuth2UserService {
     private final SnsRepository snsRepository;
     private final AppUserService appUserService;
-    private final AppUserRepository appUserRepository;
 
     /**
      * 소셜 로그인 성공 후 진입하는 서비스 입니다.
@@ -33,14 +32,15 @@ public class SnsService extends DefaultOAuth2UserService {
      * @param oAuth2User provider 에게서 받은 정보 입니다.
      * @param socialType SNS 타입(카카오, 구글, 네이버, 깃헙 등)
      * @param request 세션을 얻기 위한 request
-     * @return
+     * @return userId(유저 아이디)
      */
     public Long socialAuth(OAuth2User oAuth2User, String socialType, HttpServletRequest request) {
         SocialTypeEnum socialTypeEnum = SocialTypeEnum.valueOf(socialType.toUpperCase());
         String snsKind = socialTypeEnum.getSnsKind();
         Long userId = (Long) request.getSession().getAttribute("userId");
-
+        log.info("userId : {}", userId);
         if(userId != null){
+            log.info("계정 연동 진입");
             linkAccountSns(oAuth2User, snsKind, userId);
             return userId;
         }
@@ -148,7 +148,7 @@ public class SnsService extends DefaultOAuth2UserService {
      * SNS 아이디를 반환 합니다.
      * @param oAuth2User Provider 에게서 받은 정보 입니다.
      * @param snsKind SNS 타입에 따른 고유번호 입니다.
-     * @return
+     * @return socialId (SNS 고유 아이디)
      */
     public String getSnsId(OAuth2User oAuth2User, String snsKind) {
         String socialId = null;
@@ -197,8 +197,7 @@ public class SnsService extends DefaultOAuth2UserService {
             throw new CustomException(ErrorCode.DUPLICATED_SNS_ACCOUNT);
         }
         
-        AppUser appUser = appUserRepository.findByUserId(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        AppUser appUser = appUserService.getUser(userId);
 
         Sns newSnsUser = new Sns();
         newSnsUser.setSnsId(snsId);
