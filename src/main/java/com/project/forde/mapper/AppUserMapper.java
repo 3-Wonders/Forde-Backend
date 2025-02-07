@@ -60,4 +60,18 @@ public interface AppUserMapper {
     @Mapping(source = "user.nickname", target = "nickname")
     @Mapping(source = "user.profilePath", target = "profilePath")
     AppUserDto.Response.SearchUserNickname toResponseSearchNicknameDto(AppUser user);
+
+    @Mapping(source = "user.userId", target = "userId")
+    @Mapping(source = "user.noticeNotification", target = "noticeNotification")
+    @Mapping(source = "user.commentNotification", target = "commentNotification")
+    @Mapping(source = "user.likeNotification", target = "likeNotification")
+    @Mapping(source = "user.recommendNotification", target = "recommendNotification")
+    @Mapping(source = "user.followNotification", target = "followNotification")
+    @Mapping(source = "user.eventNotification", target = "eventNotification")
+    AppUserDto.Response.MyNotificationInfo toResponseMyNotificationInfoDto(AppUser user);
+
+    @Mapping(source = "user.userId", target = "userId")
+    @Mapping(source = "user.privateAccount", target = "privateAccount")
+    @Mapping(source = "user.disableFollow", target = "disableFollow")
+    AppUserDto.Response.MySnsInfo toResponseSnsDto(AppUser user);
 }

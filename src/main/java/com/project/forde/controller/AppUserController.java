@@ -176,6 +176,16 @@ public class AppUserController {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getAccount());
     }
 
+    @GetMapping("/sns")
+    public ResponseEntity<?> getSnsInfo() {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getMySnsInfo());
+    }
+
+    @GetMapping("/notification")
+    public ResponseEntity<?> getNotificationInfo() {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getMyNotificationInfo());
+    }
+
     @GetMapping(value = "/mention")
     public ResponseEntity<?> getSearchUsersNickname(
             @RequestParam(value = "nickname", required = false, defaultValue = "") final String nickname,

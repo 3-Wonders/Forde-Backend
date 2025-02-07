@@ -275,6 +275,24 @@ public class AppUserService {
         return AppUserMapper.INSTANCE.toResponseIntroUserDto(appUser);
     }
 
+    @UserVerify
+    public AppUserDto.Response.MySnsInfo getMySnsInfo() {
+        Long userId = UserVerifyAspect.getUserId();
+
+        AppUser appUser = getUser(userId);
+
+        return AppUserMapper.INSTANCE.toResponseSnsDto(appUser);
+    }
+
+    @UserVerify
+    public AppUserDto.Response.MyNotificationInfo getMyNotificationInfo() {
+        Long userId = UserVerifyAspect.getUserId();
+
+        AppUser appUser = getUser(userId);
+
+        return AppUserMapper.INSTANCE.toResponseMyNotificationInfoDto(appUser);
+    }
+
     /**
      * 현재 사용자의 정보를 반환합니다.
      * @return 명세서에 정의된 DTO 형식

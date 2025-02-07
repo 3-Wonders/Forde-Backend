@@ -1,14 +1,12 @@
 package com.project.forde.dto.appuser;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.validation.ValidFile;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -89,6 +87,28 @@ public class AppUserDto {
             private String nickname;
             private String email;
             private String profilePath;
+        }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        public static class MySnsInfo {
+            private Long userId;
+            private Boolean privateAccount;
+            private Boolean disableFollow;
+        }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        public static class MyNotificationInfo {
+            private Long userId;
+            private Boolean noticeNotification;
+            private Boolean commentNotification;
+            private Boolean likeNotification;
+            private Boolean recommendNotification;
+            private Boolean followNotification;
+            private Boolean eventNotification;
         }
 
         @Getter
