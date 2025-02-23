@@ -22,6 +22,8 @@ public interface BoardRepository extends JpaRepository<Board, Long> {
     Page<Board> findALlByTitleContainingOrderByCreatedTimeDesc(Pageable pageable, String keyword);
     Page<Board> findAllByUploaderAndCategoryOrderByCreatedTimeDesc(Pageable pageable, AppUser appuser, Character type);
     Page<Board> findAllByBoardIdInOrderByCreatedTimeDesc(List<Long> boardIds, Pageable pageable);
+    @Query("SELECT DISTINCT b.title FROM Board b")
+    List<String> findAllDistinctTitles();
 
     @Query(
             value = "SELECT b FROM Board b " +

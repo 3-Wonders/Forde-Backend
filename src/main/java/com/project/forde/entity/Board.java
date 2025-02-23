@@ -30,7 +30,7 @@ public class Board {
     @Column(name = "category", nullable = false, columnDefinition = "CHAR", length = 1)
     private Character category;
 
-    @Column(name = "title", nullable = false, length = 20)
+    @Column(name = "title", nullable = false, length = 50)
     private String title;
 
     @Lob
