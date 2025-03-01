@@ -1,6 +1,6 @@
-package com.project.forde.batch.csv.like;
+package com.project.forde.batch.csv.user.info;
 
-import com.project.forde.entity.BoardLike;
+import com.project.forde.entity.AppUser;
 import com.project.forde.util.CustomTimestamp;
 import jakarta.persistence.EntityManagerFactory;
 import lombok.RequiredArgsConstructor;
@@ -18,32 +18,32 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class LikeLogCSVReader implements ItemReader<BoardLike> {
+public class UserCSVReader implements ItemReader<AppUser> {
     private final EntityManagerFactory entityManagerFactory;
-    private JpaPagingItemReader<BoardLike> likeReader;
+    private JpaPagingItemReader<AppUser> userReader;
 
     @PostConstruct
     public void init() {
-        log.info("LikeLogCSVReader.init() 호출");
-        likeReader = createLikeReader();
-        this.likeReader.open(new ExecutionContext());
+        log.info("UserCSVReader.init() 호출");
+        userReader = createUserReader();
+        this.userReader.open(new ExecutionContext());
     }
 
     @Override
-    public BoardLike read() throws Exception {
-        return likeReader.read();
+    public AppUser read() throws Exception {
+        return userReader.read();
     }
 
-    private JpaPagingItemReader<BoardLike> createLikeReader() {
+    private JpaPagingItemReader<AppUser> createUserReader() {
         LocalDateTime interval = new CustomTimestamp().getTimestamp().minusMonths(3);
 
-        return new JpaPagingItemReaderBuilder<BoardLike>()
-                .name("recommendLikeReader")
+        return new JpaPagingItemReaderBuilder<AppUser>()
+                .name("userReader")
                 .entityManagerFactory(entityManagerFactory)
                 .queryString("""
-                        SELECT bk
-                        FROM BoardLike bk
-                        WHERE bk.createdTime >= :interval
+                        SELECT u FROM AppUser u
+                        JOIN LoginLog ll ON u = ll.user
+                        WHERE ll.loggedInTime >= :interval
                         """)
                 .parameterValues(Map.of("interval", interval))
                 .pageSize(100)

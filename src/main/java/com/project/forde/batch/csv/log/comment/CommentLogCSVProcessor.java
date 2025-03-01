@@ -1,8 +1,7 @@
-package com.project.forde.batch.csv.comment;
+package com.project.forde.batch.csv.log.comment;
 
-import com.project.forde.batch.csv.CSVLogDto;
-import com.project.forde.batch.csv.LogType;
-import com.project.forde.entity.BoardLike;
+import com.project.forde.batch.csv.log.LogType;
+import com.project.forde.batch.csv.log.dto.CSVLogDto;
 import com.project.forde.entity.Comment;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
@@ -10,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class CommentLogCsvProcessor implements ItemProcessor<Comment, CSVLogDto> {
+public class CommentLogCSVProcessor implements ItemProcessor<Comment, CSVLogDto> {
     @Override
     public CSVLogDto process(Comment item) {
         CSVLogDto csvLogDto = new CSVLogDto(

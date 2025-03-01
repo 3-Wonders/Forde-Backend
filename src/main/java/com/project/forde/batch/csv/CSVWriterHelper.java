@@ -10,21 +10,24 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CSVLogWriterHelper {
-    public void write(Chunk<? extends CSVLogDto> chunk, String filename) throws Exception {
-        BeanWrapperFieldExtractor<CSVLogDto> fieldExtractor = new BeanWrapperFieldExtractor<>();
-        fieldExtractor.setNames(new String[]{"userId", "boardId", "logType", "duration", "revisit", "date"});
+public class CSVWriterHelper<T> {
+    private boolean isFirstWrite = true;
 
-        DelimitedLineAggregator<CSVLogDto> lineAggregator = new DelimitedLineAggregator<>();
+    public void write(Chunk<? extends T> chunk, String fileName, String[] fieldNames) throws Exception {
+        BeanWrapperFieldExtractor<T> fieldExtractor = new BeanWrapperFieldExtractor<>();
+        fieldExtractor.setNames(fieldNames);
+
+        DelimitedLineAggregator<T> lineAggregator = new DelimitedLineAggregator<>();
         lineAggregator.setDelimiter(",");
         lineAggregator.setFieldExtractor(fieldExtractor);
 
-        FlatFileItemWriter<CSVLogDto> itemWriter = new FlatFileItemWriterBuilder<CSVLogDto>()
-                .name("csvLogWriter")
+        FlatFileItemWriter<T> itemWriter = new FlatFileItemWriterBuilder<T>()
+                .name(fileName + "Writer")
                 .encoding("UTF-8")
-                .resource(new FileSystemResource("output/" + filename + ".csv"))
+                .resource(new FileSystemResource("output/" + fileName + ".csv"))
                 .lineAggregator(lineAggregator)
-                .headerCallback(writer -> writer.write("userId,boardId,logType,duration,revisit,date"))
+                .headerCallback(writer -> writer.write(String.join(",", fieldNames)))
+                .append(!isFirstWrite)
                 .build();
 
         itemWriter.afterPropertiesSet();
@@ -33,5 +36,13 @@ public class CSVLogWriterHelper {
         itemWriter.write(chunk);
 
         itemWriter.close();
+
+        if (isFirstWrite) {
+            isFirstWrite = false;
+        }
+    }
+
+    public void resetFirstWrite() {
+        isFirstWrite = true;
     }
 }

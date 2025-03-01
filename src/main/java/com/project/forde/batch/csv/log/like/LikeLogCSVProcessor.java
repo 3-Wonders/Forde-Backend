@@ -1,7 +1,7 @@
-package com.project.forde.batch.csv.like;
+package com.project.forde.batch.csv.log.like;
 
-import com.project.forde.batch.csv.CSVLogDto;
-import com.project.forde.batch.csv.LogType;
+import com.project.forde.batch.csv.log.LogType;
+import com.project.forde.batch.csv.log.dto.CSVLogDto;
 import com.project.forde.entity.BoardLike;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
-public class LikeLogCsvProcessor implements ItemProcessor<BoardLike, CSVLogDto> {
+public class LikeLogCSVProcessor implements ItemProcessor<BoardLike, CSVLogDto> {
     @Override
     public CSVLogDto process(BoardLike item) {
         CSVLogDto csvLogDto = new CSVLogDto(

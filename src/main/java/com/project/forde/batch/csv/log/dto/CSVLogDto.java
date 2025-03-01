@@ -1,4 +1,7 @@
-package com.project.forde.batch.csv;
+package com.project.forde.batch.csv.log.dto;
+
+
+import com.project.forde.batch.csv.log.LogType;
 
 public record CSVLogDto(
         Long userId,

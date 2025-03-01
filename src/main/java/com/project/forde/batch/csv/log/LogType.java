@@ -1,4 +1,4 @@
-package com.project.forde.batch.csv;
+package com.project.forde.batch.csv.log;
 
 public enum LogType {
     SEARCH,

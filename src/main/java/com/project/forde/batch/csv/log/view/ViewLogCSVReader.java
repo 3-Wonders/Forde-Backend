@@ -1,4 +1,4 @@
-package com.project.forde.batch.csv.view;
+package com.project.forde.batch.csv.log.view;
 
 import com.project.forde.entity.BoardLike;
 import com.project.forde.entity.BoardView;

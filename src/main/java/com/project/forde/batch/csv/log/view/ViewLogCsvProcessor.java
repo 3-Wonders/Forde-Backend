@@ -1,8 +1,7 @@
-package com.project.forde.batch.csv.view;
+package com.project.forde.batch.csv.log.view;
 
-import com.project.forde.batch.csv.CSVLogDto;
-import com.project.forde.batch.csv.LogType;
-import com.project.forde.entity.BoardLike;
+import com.project.forde.batch.csv.log.LogType;
+import com.project.forde.batch.csv.log.dto.CSVLogDto;
 import com.project.forde.entity.BoardView;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.item.ItemProcessor;

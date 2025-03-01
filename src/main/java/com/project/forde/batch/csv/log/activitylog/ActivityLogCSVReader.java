@@ -1,4 +1,4 @@
-package com.project.forde.batch.csv.activitylog;
+package com.project.forde.batch.csv.log.activitylog;
 
 import com.project.forde.entity.ActivityLog;
 import com.project.forde.type.LogTypeEnum;
