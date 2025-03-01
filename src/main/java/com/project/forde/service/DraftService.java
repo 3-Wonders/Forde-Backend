@@ -27,7 +27,6 @@ public class DraftService {
     private final DraftRepository draftRepository;
     private final DraftTagRepository draftTagRepository;
     private final BoardImageRepository boardImageRepository;
-    private final AppUserRepository appUserRepository;
 
     private final AppUserService appUserService;
     private final TagService tagService;

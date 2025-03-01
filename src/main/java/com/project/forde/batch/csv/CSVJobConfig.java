@@ -84,13 +84,13 @@ public class CSVJobConfig {
         return new JobBuilder("csvJob", jobRepository)
                 .preventRestart()
                 .incrementer(new RunIdIncrementer())
-//                .start(csvActivityLogStep)
-//                .next(csvLikeStep)
-//                .next(csvCommentStep)
-//                .next(csvViewStep)
-//                .next(csvUserStep)
-//                .next(csvInterestStep)
-                .start(csvBoardStep)
+                .start(csvActivityLogStep)
+                .next(csvLikeStep)
+                .next(csvCommentStep)
+                .next(csvViewStep)
+                .next(csvUserStep)
+                .next(csvInterestStep)
+                .next(csvBoardStep)
                 .build();
     }
 
