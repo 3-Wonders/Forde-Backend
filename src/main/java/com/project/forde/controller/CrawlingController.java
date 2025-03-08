@@ -16,7 +16,7 @@ public class CrawlingController {
     private final CrawlingService crawlingService;
 
     @PostMapping(value = "")
-    public ResponseEntity<?> getDevsNote() {
+    public ResponseEntity<?> getNews() {
         crawlingService.getCrawling();
         return ResponseEntity.noContent().build();
     }
