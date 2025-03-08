@@ -38,6 +38,8 @@ dependencies {
     implementation 'com.google.firebase:firebase-admin:9.3.0'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.mindrot:jbcrypt:0.4'
+    implementation 'org.jsoup:jsoup:1.15.3'
+    implementation 'org.seleniumhq.selenium:selenium-java:4.19.1'
 
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'com.mysql:mysql-connector-j'

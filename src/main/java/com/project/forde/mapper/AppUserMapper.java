@@ -5,7 +5,6 @@ import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.AppUser;
-import com.project.forde.entity.Tag;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -20,7 +19,7 @@ public interface AppUserMapper {
     @Mapping(source = "request.password", target = "userPw")
     @Mapping(source = "request.isEnableNotification", target = "noticeNotification")
     @Mapping(source = "request.isEnableEvent", target = "eventNotification")
-    AppUser toEntity(AppUserDto.Request.signup request);
+    AppUser toEntity(AppUserDto.Request.Signup request);
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
@@ -50,15 +49,29 @@ public interface AppUserMapper {
     @Mapping(source = "user.newsCount", target = "newsCount")
     @Mapping(source = "user.likeCount", target = "likeCount")
     @Mapping(source = "user.commentCount", target = "commentCount")
-    AppUserDto.Response.myInfo toResponseMyInfoDto(AppUser user, List<TagDto.Response.TagWithoutCount> interestedTags);
+    AppUserDto.Response.MyInfo toResponseMyInfoDto(AppUser user, List<TagDto.Response.TagWithoutCount> interestedTags);
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.email", target = "email")
     @Mapping(source = "snsInfos", target = "snsInfos")
-    AppUserDto.Response.account toResponseAccountDto(AppUser user, List<SnsDto.Response.connectedStatus> snsInfos);
+    AppUserDto.Response.Account toResponseAccountDto(AppUser user, List<SnsDto.Response.connectedStatus> snsInfos);
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
     @Mapping(source = "user.profilePath", target = "profilePath")
-    AppUserDto.Response.searchUserNickname toResponseSearchNicknameDto(AppUser user);
+    AppUserDto.Response.SearchUserNickname toResponseSearchNicknameDto(AppUser user);
+
+    @Mapping(source = "user.userId", target = "userId")
+    @Mapping(source = "user.noticeNotification", target = "noticeNotification")
+    @Mapping(source = "user.commentNotification", target = "commentNotification")
+    @Mapping(source = "user.likeNotification", target = "likeNotification")
+    @Mapping(source = "user.recommendNotification", target = "recommendNotification")
+    @Mapping(source = "user.followNotification", target = "followNotification")
+    @Mapping(source = "user.eventNotification", target = "eventNotification")
+    AppUserDto.Response.MyNotificationInfo toResponseMyNotificationInfoDto(AppUser user);
+
+    @Mapping(source = "user.userId", target = "userId")
+    @Mapping(source = "user.privateAccount", target = "privateAccount")
+    @Mapping(source = "user.disableFollow", target = "disableFollow")
+    AppUserDto.Response.MySnsInfo toResponseSnsDto(AppUser user);
 }

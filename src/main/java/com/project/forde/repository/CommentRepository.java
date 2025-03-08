@@ -1,5 +1,6 @@
 package com.project.forde.repository;
 
+import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Board;
 import com.project.forde.entity.Comment;
 import org.springframework.data.domain.Page;
@@ -13,4 +14,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     Page<Comment> findAllByBoardOrderByCommentIdDesc(Board board, Pageable pageable);
     Page<Comment> findAllByParent_CommentIdOrderByCommentIdDesc(Long parentId, Pageable pageable);
     Boolean existsByBoardAndIsAdopt(Board board, Boolean isAdopt);
+    Page<Comment> findAllByUploaderOrderByCreatedTimeDesc(AppUser appUser, Pageable pageable);
 }

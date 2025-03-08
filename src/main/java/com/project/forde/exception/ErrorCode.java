@@ -20,7 +20,10 @@ public enum ErrorCode {
     INVALID_MENTION(HttpStatus.BAD_REQUEST, "내용 안에 멘션의 정보가 존재하지 않습니다.", "B40009"),
     NOT_QUESTION_BOARD(HttpStatus.BAD_REQUEST, "질문 게시글이 아닙니다.", "B40011"),
     BAD_REQUEST_ALREADY_ADOPTED(HttpStatus.BAD_REQUEST, "채택된 댓글은 삭제할 수 없습니다.", "B40012"),
+
     CAN_NOT_LOG_MY_BOARD(HttpStatus.BAD_REQUEST, "자신의 게시글에는 로그를 남길 수 없습니다.", "B40013"),
+    ALREADY_FOLLOW(HttpStatus.BAD_REQUEST, "이미 팔로우한 유저입니다.", "B40014"),
+    NOT_NOTIFICATION_TYPE_FOLLOW(HttpStatus.BAD_REQUEST, "팔로우 타입의 알림이 아닙니다.", "B40015"),
 
     NOT_MATCHED_LOGIN_INFO(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다.", "U40101"),
     EXPIRED_COOKIE(HttpStatus.UNAUTHORIZED, "만료된 쿠키입니다.", "U40102"),
@@ -46,6 +49,8 @@ public enum ErrorCode {
     NOT_FOUND_SNS_PROFILE(HttpStatus.NOT_FOUND, "SNS 사용자의 프로필 정보가 존재하지 않습니다", "N40407"),
     NOT_FOUND_SNS_NAME(HttpStatus.NOT_FOUND, "SNS 사용자의 이름이 존재하지 않습니다", "N40408"),
    NOT_FOUND_DRAFT(HttpStatus.NOT_FOUND, "임시 저장이 존재하지 않습니다.", "N40409"),
+    NOT_FOUND_NOTIFICATION(HttpStatus.NOT_FOUND, "알림이 존재하지 않습니다.", "N40410"),
+    NOT_FOUND_FOLLOW(HttpStatus.NOT_FOUND, "팔로우가 되어있지 않습니다.", "N40411"),
 
     DUPLICATED_NICKNAME(HttpStatus.CONFLICT, "닉네임 중복입니다.", "C40901"),
     DUPLICATED_EMAIL(HttpStatus.CONFLICT, "이메일 중복입니다.", "C40902"),

@@ -164,5 +164,58 @@ public class BoardDto {
             private Long commentCount;
             private String createdTime;
         }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        public static class UserBoards {
+
+            @Getter
+            @Setter
+            @AllArgsConstructor
+            public static class UserBoard {
+                private Long boardId;
+                private String boardType;
+                private String thumbnail;
+                private String title;
+                private List<TagDto.Response.TagWithoutCount> tags;
+                private Boolean isLike;
+                private AppUserDto.Response.LightInfo uploader;
+                private Long viewCount;
+                private Long likeCount;
+                private Long commentCount;
+                private String createdTime;
+            }
+
+            private List<UserBoard> boards;
+            private Long total;
+        }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        public static class UserComments {
+
+            @Getter
+            @Setter
+            @AllArgsConstructor
+            public static class UserComment {
+                private Long boardId;
+                private String boardType;
+                private String thumbnail;
+                private String title;
+                private List<TagDto.Response.TagWithoutCount> tags;
+                private Boolean isLike;
+                private AppUserDto.Response.LightInfo uploader;
+                private Long viewCount;
+                private Long likeCount;
+                private String comment;
+                private Long commentCount;
+                private String createdTime;
+            }
+
+            private List<UserComment> boards;
+            private Long total;
+        }
     }
 }

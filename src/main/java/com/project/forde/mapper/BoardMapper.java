@@ -5,6 +5,7 @@ import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Board;
+import com.project.forde.entity.Comment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
@@ -62,6 +63,33 @@ public interface BoardMapper {
     @Mapping(source = "imageIds", target = "imageIds")
     @Mapping(source = "board.createdTime", target = "createdTime", qualifiedBy = { MapCreatedTime.class, CustomTimestampTranslator.class })
     BoardDto.Response.Update toUpdatePost(Board board, List<TagDto.Response.TagWithoutCount> tags, List<Long> imageIds);
+
+    @Mapping(source = "board.boardId", target = "boardId")
+    @Mapping(source = "board.category", target = "boardType")
+    @Mapping(source = "board.uploader", target = "uploader")
+    @Mapping(source = "board.title", target = "title")
+    @Mapping(source = "board.thumbnailPath", target = "thumbnail")
+    @Mapping(source = "tags", target = "tags")
+    @Mapping(source = "board.isLike", target = "isLike")
+    @Mapping(source = "board.viewCount", target = "viewCount")
+    @Mapping(source = "board.likeCount", target = "likeCount")
+    @Mapping(source = "board.commentCount", target = "commentCount")
+    @Mapping(source = "board.createdTime", target = "createdTime", qualifiedBy = { MapCreatedTime.class, CustomTimestampTranslator.class })
+    BoardDto.Response.UserBoards.UserBoard toUserBoardsInBoard(Board board, List<TagDto.Response.TagWithoutCount> tags);
+
+    @Mapping(source = "board.boardId", target = "boardId")
+    @Mapping(source = "board.category", target = "boardType")
+    @Mapping(source = "board.uploader", target = "uploader")
+    @Mapping(source = "board.title", target = "title")
+    @Mapping(source = "board.thumbnailPath", target = "thumbnail")
+    @Mapping(source = "tags", target = "tags")
+    @Mapping(source = "board.isLike", target = "isLike")
+    @Mapping(source = "board.viewCount", target = "viewCount")
+    @Mapping(source = "board.likeCount", target = "likeCount")
+    @Mapping(source = "board.commentCount", target = "commentCount")
+    @Mapping(source = "comment.content", target = "comment")
+    @Mapping(source = "board.createdTime", target = "createdTime", qualifiedBy = { MapCreatedTime.class, CustomTimestampTranslator.class })
+    BoardDto.Response.UserComments.UserComment toUserCommentInBoards(Board board, List<TagDto.Response.TagWithoutCount> tags, Comment comment);
 
     @Mapping(source = "boardId", target = "boardId")
     @Mapping(source = "thumbnail", target = "thumbnail")

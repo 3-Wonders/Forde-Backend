@@ -1,10 +1,13 @@
 package com.project.forde.controller;
 
+import com.project.forde.annotation.ExtractUserId;
+import com.project.forde.aspect.ExtractUserIdAspect;
 import com.project.forde.dto.RequestLoginDto;
 import com.project.forde.dto.mail.MailDto;
 import com.project.forde.dto.RequestUpdateProfileDto;
 import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.service.AppUserService;
+import com.project.forde.service.FollowService;
 import com.project.forde.service.MailService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
@@ -22,22 +25,15 @@ import org.springframework.web.bind.annotation.*;
 public class AppUserController {
     private final AppUserService appUserService;
     private final MailService mailService;
+    private final FollowService followService;
 
     @GetMapping("/{user_id}")
     public ResponseEntity<?> getOtherUser(@PathVariable(value = "user_id") Long userId) {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getOtherUser(userId));
     }
 
-    @PatchMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateProfileImg(@Valid @ModelAttribute RequestUpdateProfileDto dto) {
-        // NOTE: Validation 에러 사용법을 보여주기 위해 미리 작성된 API입니다.
-        // TODO: 1. 사용자 인증(세션)을 먼저 처리 하세요.
-        // TODO: 2. Firebase Storage을 이용하여 기존 이미지를 삭제하고, 새로운 이미지를 업로드하는 로직을 작성하세요.
-        return ResponseEntity.noContent().build();
-    }
-
     @PostMapping(value = "")
-    public ResponseEntity<?> create(@Valid @RequestBody AppUserDto.Request.signup dto) {
+    public ResponseEntity<?> create(@Valid @RequestBody AppUserDto.Request.Signup dto) {
         appUserService.createAppUser(dto);
         return ResponseEntity.noContent().build();
     }
@@ -53,14 +49,14 @@ public class AppUserController {
     }
 
     @PostMapping(value = "/verify")
-    public ResponseEntity<?> sendEmail(@Valid @RequestBody MailDto.Request.send dto) {
-        mailService.sendEmail(dto);
+    public ResponseEntity<?> sendVerificationCode(@RequestBody @Valid MailDto.Request.Send dto) {
+        mailService.sendVerificationCode(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/verify/compare")
-    public ResponseEntity<?> compareEmail(@RequestBody MailDto.Request.compareVerifyCode dto, final HttpServletRequest request) {
-        Long userId = mailService.compareEmail(dto);
+    public ResponseEntity<?> verifyEmail(@Valid @RequestBody MailDto.Request.EmailVerification dto, final HttpServletRequest request) {
+        Long userId = mailService.verifyEmail(dto);
         final HttpSession session = request.getSession();
 
         session.setAttribute("userId", userId);
@@ -69,20 +65,53 @@ public class AppUserController {
     }
 
     @PostMapping(value = "/verify/compare/password")
-    public ResponseEntity<?> compareEmailPassword(@RequestBody MailDto.Request.compareVerifyCode dto) {
-        mailService.compareEmailPassword(dto);
+    public ResponseEntity<?> verifyEmailPassword(@Valid @RequestBody MailDto.Request.EmailVerification dto) {
+        mailService.verifyEmailPassword(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping(value = "/password/randomkey")
-    public ResponseEntity<?> compareRandomKey(@RequestBody MailDto.Request.compareRandomKey dto) {
-        mailService.compareRandomKey(dto.getRandomKey());
+    @ExtractUserId
+    public ResponseEntity<?> verifyRandomKey(@Valid @RequestBody MailDto.Request.RandomKeyVerification dto) {
+        Long userId = ExtractUserIdAspect.getUserId();
+        mailService.verifyRandomKey(userId, dto.getRandomKey());
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping(value = "/password")
-    public ResponseEntity<?> updatePassword(@RequestBody AppUserDto.Request.updatePassword dto) {
-        appUserService.updatePassword(dto);
+    public ResponseEntity<?> updatePassword(@Valid @RequestBody MailDto.Request.UpdatePassword dto) {
+        mailService.verifyRandomKeyWithUpdatePassword(dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/verify/compare/sns")
+    public ResponseEntity<?> setSnsUserEmail(@Valid @RequestBody MailDto.Request.SetSnsEmail dto, final HttpServletRequest request) {
+        Long userId = mailService.verifyEmailCodeWithSetSnsEmail(dto);
+        final HttpSession session = request.getSession();
+
+        session.setAttribute("userId", userId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/following/{to_user_id}")
+    public ResponseEntity<?> requestFollowing(@PathVariable(value = "to_user_id") Long toUserId) {
+        followService.requestFollowing(toUserId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/following/accept/{notification_id}")
+    public ResponseEntity<?> acceptFollowing(@PathVariable(value = "notification_id") Long notificationId) {
+        followService.acceptFollowRequest(notificationId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping(value = "/following/{to_user_id}")
+    public ResponseEntity<?> removeFollowing(@PathVariable(value = "to_user_id") Long toUserId) {
+        followService.removeFollowing(toUserId);
+
         return ResponseEntity.noContent().build();
     }
 
@@ -97,7 +126,43 @@ public class AppUserController {
             @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
             @RequestParam(value = "count", required = false, defaultValue = "5") final int count
             ) {
-        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserNews(page, count));
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserBoard(userId, 'N', page, count));
+    }
+
+    @GetMapping("/{user_id}/board")
+    public ResponseEntity<?> getUserBoards(
+            @PathVariable(value = "user_id") Long userId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserBoard(userId, 'B', page, count));
+    }
+
+    @GetMapping("/{user_id}/question")
+    public ResponseEntity<?> getUserQuestions(
+            @PathVariable(value = "user_id") Long userId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserBoard(userId, 'Q', page, count));
+    }
+
+    @GetMapping("/{user_id}/like")
+    public ResponseEntity<?> getUserLikeBoards(
+            @PathVariable(value = "user_id") Long userId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserLikeBoard(userId, page, count));
+    }
+
+    @GetMapping(value = "/{user_id}/comment")
+    public ResponseEntity<?> getUserCommentBoards(
+            @PathVariable(value = "user_id") Long userId,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getUserBoardsWithComments(userId, page, count));
     }
 
     @GetMapping("")
@@ -111,6 +176,16 @@ public class AppUserController {
         return ResponseEntity.status(HttpStatus.OK).body(appUserService.getAccount());
     }
 
+    @GetMapping("/sns")
+    public ResponseEntity<?> getSnsInfo() {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getMySnsInfo());
+    }
+
+    @GetMapping("/notification")
+    public ResponseEntity<?> getNotificationInfo() {
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.getMyNotificationInfo());
+    }
+
     @GetMapping(value = "/mention")
     public ResponseEntity<?> getSearchUsersNickname(
             @RequestParam(value = "nickname", required = false, defaultValue = "") final String nickname,
@@ -121,20 +196,32 @@ public class AppUserController {
     }
 
     @PatchMapping(value = "/sns/setting")
-    public ResponseEntity<?> updateSocialSetting(@RequestBody @Valid AppUserDto.Request.updateSocialSetting dto) {
+    public ResponseEntity<?> updateSocialSetting(@Valid @RequestBody AppUserDto.Request.UpdateSocialSetting dto) {
         appUserService.updateSocialSetting(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PutMapping(value = "/notification")
-    public ResponseEntity<?> updateNotificationSetting(@RequestBody @Valid AppUserDto.Request.updateNotificationSetting dto) {
+    public ResponseEntity<?> updateNotificationSetting(@Valid @RequestBody AppUserDto.Request.UpdateNotificationSetting dto) {
         appUserService.updateNotificationSetting(dto);
         return ResponseEntity.noContent().build();
     }
 
     @PatchMapping(value = "")
-    public ResponseEntity<?> updateMyInfo(@RequestBody @Valid AppUserDto.Request.updateMyInfo dto) {
+    public ResponseEntity<?> updateMyInfo(@Valid @RequestBody AppUserDto.Request.UpdateMyInfo dto) {
         appUserService.updateMyInfo(dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping(value = "/verify/compare")
+    public ResponseEntity<?> updateEmail(@Valid @RequestBody MailDto.Request.EmailVerification dto) {
+        mailService.verifyEmailCodeWithUpdateEmail(dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping(value = "/profile", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateProfile(@ModelAttribute AppUserDto.Request.UpdateProfileImage dto) {
+        appUserService.updateProfileImage(dto);
         return ResponseEntity.noContent().build();
     }
 
