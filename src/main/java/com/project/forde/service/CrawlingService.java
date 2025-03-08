@@ -41,11 +41,6 @@ public class CrawlingService {
     @Value("${news.base.url}")
     private String newsBaseUrl;
 
-    @Value("${second.news.list.url}")
-    private String secondNewsList;
-    @Value("${second.news.base.url}")
-    private String secondNewsBaseUrl;
-
     @Value("${test.id}")
     private long testId;
 
