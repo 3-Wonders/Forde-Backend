@@ -19,6 +19,6 @@ public class Follow {
     private FollowPK followPK;
 
     @CreationTimestamp
-    @Column(name = "created_time", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
-    private LocalDateTime createdTime; //생성된 시간
+    @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdTime;
 }

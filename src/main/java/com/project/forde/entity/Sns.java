@@ -36,5 +36,5 @@ public class Sns {
 
     @CreationTimestamp
     @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdTime; //생성된 시간
+    private LocalDateTime createdTime;
 }

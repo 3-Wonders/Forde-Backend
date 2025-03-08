@@ -46,3 +46,6 @@ generated-test-sources/
 gradle
 gradlew
 gradlew.bat
+
+### Log File ###
+output/**

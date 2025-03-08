@@ -248,6 +248,9 @@ public class CommentService {
 
         appUserService.decreaseCount(user, AppUserCount.COMMENT_COUNT);
 
+        board.setCommentCount(board.getCommentCount() - 1);
+        boardRepository.save(board);
+
         comment.setIsDeleted(true);
         comment.setDeletedTime(new CustomTimestamp().getTimestamp());
         commentRepository.save(comment);

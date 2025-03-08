@@ -20,6 +20,8 @@ public enum ErrorCode {
     INVALID_MENTION(HttpStatus.BAD_REQUEST, "내용 안에 멘션의 정보가 존재하지 않습니다.", "B40009"),
     NOT_QUESTION_BOARD(HttpStatus.BAD_REQUEST, "질문 게시글이 아닙니다.", "B40011"),
     BAD_REQUEST_ALREADY_ADOPTED(HttpStatus.BAD_REQUEST, "채택된 댓글은 삭제할 수 없습니다.", "B40012"),
+
+    CAN_NOT_LOG_MY_BOARD(HttpStatus.BAD_REQUEST, "자신의 게시글에는 로그를 남길 수 없습니다.", "B40013"),
     ALREADY_FOLLOW(HttpStatus.BAD_REQUEST, "이미 팔로우한 유저입니다.", "B40014"),
     NOT_NOTIFICATION_TYPE_FOLLOW(HttpStatus.BAD_REQUEST, "팔로우 타입의 알림이 아닙니다.", "B40015"),
 

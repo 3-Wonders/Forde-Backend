@@ -92,9 +92,9 @@ public class AppUser {
     private Boolean verified;
 
     @Column(name = "deleted_time")
-    private LocalDateTime deletedTime; //삭제된 시간
+    private LocalDateTime deletedTime;
 
     @CreationTimestamp
-    @Column(name = "created_time", nullable = false)
-    private LocalDateTime createdTime; //생성된 시간
+    @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdTime;
 }

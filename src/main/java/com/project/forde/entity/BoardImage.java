@@ -43,8 +43,8 @@ public class BoardImage {
     private String imagePath;
 
     @CreationTimestamp
-    @Column(name = "created_time", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private LocalDateTime createdTime; //생성된 시간
+    @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdTime;
 
     @Builder
     public BoardImage(Board board, Long imageSize, String imageType, String imagePath, LocalDateTime createdTime) {

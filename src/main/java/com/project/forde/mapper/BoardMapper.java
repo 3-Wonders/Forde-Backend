@@ -23,6 +23,9 @@ public interface BoardMapper {
     @Mapping(source = "file.storePath", target = "thumbnailPath")
     @Mapping(source = "file.extension", target = "thumbnailType")
     @Mapping(source = "file.size", target = "thumbnailSize")
+    @Mapping(target = "viewCount", constant = "0")
+    @Mapping(target = "likeCount", constant = "0")
+    @Mapping(target = "commentCount", constant = "0")
     Board toEntity(AppUser user, BoardDto.Request.Create request, FileDto file);
 
     @Mapping(source = "board.boardId", target = "boardId")
@@ -87,4 +90,10 @@ public interface BoardMapper {
     @Mapping(source = "comment.content", target = "comment")
     @Mapping(source = "board.createdTime", target = "createdTime", qualifiedBy = { MapCreatedTime.class, CustomTimestampTranslator.class })
     BoardDto.Response.UserComments.UserComment toUserCommentInBoards(Board board, List<TagDto.Response.TagWithoutCount> tags, Comment comment);
+
+    @Mapping(source = "boardId", target = "boardId")
+    @Mapping(source = "thumbnail", target = "thumbnail")
+    @Mapping(source = "title", target = "title")
+    @Mapping(source = "nickname", target = "nickname")
+    BoardDto.Response.IntroPost.Item toIntroPostItem(Long boardId, String thumbnail, String title, String nickname);
 }

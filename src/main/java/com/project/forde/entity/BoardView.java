@@ -22,6 +22,6 @@ public class BoardView {
     private BoardViewPK boardViewPK;
 
     @CreationTimestamp
-    @Column(name = "created_time", nullable = false, columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
+    @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
     private LocalDateTime createdTime;
 }
