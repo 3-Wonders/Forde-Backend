@@ -6,6 +6,7 @@ import com.project.forde.annotation.ExtractUserId;
 import com.project.forde.annotation.UserVerify;
 import com.project.forde.aspect.ExtractUserIdAspect;
 import com.project.forde.aspect.UserVerifyAspect;
+import com.project.forde.dto.activityLog.ActivityLogEventDto;
 import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
@@ -13,6 +14,7 @@ import com.project.forde.entity.composite.BoardTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.*;
+import com.project.forde.projection.IntroPostProjection;
 import com.project.forde.repository.*;
 
 import com.project.forde.type.BoardTypeEnum;
@@ -21,14 +23,17 @@ import com.project.forde.type.ImagePathEnum;
 import com.project.forde.type.SortBoardTypeEnum;
 import com.project.forde.util.CustomTimestamp;
 import com.project.forde.util.FileStore;
+import com.project.forde.util.RedisStore;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,6 +41,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
 public class BoardService {
+    public static final String NEWS_STORE_KEY = "recommend:news:";
+    public static final String NEWS_STORE_KEY_COLD_START = "recommend:news:coldstart:";
+
+    // 3시간
+    public static final Long TTL = 60L * 3L;
+
     private final BoardRepository boardRepository;
     private final TagRepository tagRepository;
     private final BoardTagRepository boardTagRepository;
@@ -47,8 +58,11 @@ public class BoardService {
     private final BoardTagService boardTagService;
     private final BoardImageService boardImageService;
     private final AppUserService appUserService;
+    private final RecommendService recommendService;
 
+    private final ApplicationEventPublisher publisher;
     private final FileStore fileStore;
+    private final RedisStore redisStore;
 
     private BoardDto.Response.Boards createBoardsDto(Page<Board> boards) {
         List<BoardTag> boardTags = boardTagRepository.findAllByBoardTagPK_BoardIn(boards.toList());
@@ -82,9 +96,19 @@ public class BoardService {
         return createBoardsDto(boards);
     }
 
+    @ExtractUserId
     public BoardDto.Response.Boards getSearchPosts(final int page, final int count, final String keyword) {
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
         Page<Board> boards = boardRepository.findALlByTitleContainingOrderByCreatedTimeDesc(pageable, keyword);
+
+        Long userId = ExtractUserIdAspect.getUserId();
+
+        if (userId != null) {
+            publisher.publishEvent(new ActivityLogEventDto.Create.Search(
+                appUserService.getUser(userId),
+                keyword
+            ));
+        }
 
         return createBoardsDto(boards);
     }
@@ -105,6 +129,7 @@ public class BoardService {
         return createBoardsDto(boards);
     }
 
+    @ExtractUserId
     public BoardDto.Response.Detail getPost(final Long boardId) {
         Board board = boardRepository.findBoardIncludeUploaderByBoardId(boardId)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
@@ -113,10 +138,24 @@ public class BoardService {
         List<Tag> tags = boardTags.stream().map(tag -> tag.getBoardTagPK().getTag()).toList();
         List<TagDto.Response.TagWithoutCount> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
 
-        // TODO : userId가 존재한다면 (로그인 상태라면) 조회수 증가
-        // viewService.createView(userId, boardId);
+        Long userId = ExtractUserIdAspect.getUserId();
+        boolean isCreated = false;
 
-        return BoardMapper.INSTANCE.toDetail(board, responseTags);
+        if (userId != null) {
+            isCreated = viewService.createView(userId, boardId);
+
+            publisher.publishEvent(new ActivityLogEventDto.Create.Revisit(
+                appUserService.getUser(userId),
+                board
+            ));
+        }
+
+        BoardDto.Response.Detail response = BoardMapper.INSTANCE.toDetail(board, responseTags);
+        if (isCreated) {
+            response.setViewCount(response.getViewCount() + 1);
+        }
+
+        return response;
     }
 
     @UserVerify
@@ -137,6 +176,84 @@ public class BoardService {
         List<Long> imageIds = boardImages.stream().map(BoardImage::getImageId).toList();
 
         return BoardMapper.INSTANCE.toUpdatePost(board, responseTags, imageIds);
+    }
+
+    public BoardDto.Response.Boards getDailyNews(final int page, final int count) {
+        CustomTimestamp now = new CustomTimestamp();
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+        Page<Board> boards = boardRepository.findAllByDailyNews(pageable, now.getLastDay());
+
+        return createBoardsDto(boards);
+    }
+
+    public BoardDto.Response.Boards getMonthlyNews(final int page, final int count) {
+        CustomTimestamp now = new CustomTimestamp();
+
+        Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
+        Page<Board> boards = boardRepository.findAllByMonthlyNews(pageable, now.getNMonth(1));
+
+        return createBoardsDto(boards);
+    }
+
+    private BoardDto.Response.IntroPost fetchRecommendNews() {
+        List<IntroPostProjection> recommendNews = recommendService.getRecommendNews();
+        List<BoardDto.Response.IntroPost.Item> boards = recommendNews.stream().map(
+            recommendNewsProjection -> BoardMapper.INSTANCE.toIntroPostItem(
+                recommendNewsProjection.getBoardId(),
+                recommendNewsProjection.getThumbnail(),
+                recommendNewsProjection.getTitle(),
+                recommendNewsProjection.getNickname()
+            )
+        ).toList();
+
+        return new BoardDto.Response.IntroPost(boards);
+    }
+
+    @ExtractUserId
+    public BoardDto.Response.IntroPost getRecommendNews() {
+        Long userId = ExtractUserIdAspect.getUserId();
+
+        if (userId == null) {
+            return redisStore.getJson(
+                    NEWS_STORE_KEY + "anonymous",
+                    BoardDto.Response.IntroPost.class
+            ).orElseGet(() -> {
+                BoardDto.Response.IntroPost recommendNews = fetchRecommendNews();
+                redisStore.setJson(NEWS_STORE_KEY + "anonymous", recommendNews, TTL);
+                return recommendNews;
+            });
+        }
+
+        Optional<BoardDto.Response.IntroPost> recommendNews = redisStore.getJson(
+                NEWS_STORE_KEY + userId,
+                BoardDto.Response.IntroPost.class
+        );
+
+        return recommendNews.orElseGet(() -> redisStore.getJson(
+                        NEWS_STORE_KEY_COLD_START + userId,
+                        BoardDto.Response.IntroPost.class
+                )
+                .orElseGet(() -> {
+                    BoardDto.Response.IntroPost recommendNewsData = fetchRecommendNews();
+                    redisStore.setJson(NEWS_STORE_KEY_COLD_START + userId, recommendNewsData, TTL);
+                    return recommendNewsData;
+                }));
+    }
+
+    public BoardDto.Response.IntroPost getPopularPosts() {
+        CustomTimestamp now = new CustomTimestamp();
+
+        List<IntroPostProjection> recommendWithoutNews = boardRepository.findAllByMonthlyPosts(now.getNMonth(1));
+        List<BoardDto.Response.IntroPost.Item> boards = recommendWithoutNews.stream().map(
+            recommendNewsProjection -> BoardMapper.INSTANCE.toIntroPostItem(
+                recommendNewsProjection.getBoardId(),
+                recommendNewsProjection.getThumbnail(),
+                recommendNewsProjection.getTitle(),
+                recommendNewsProjection.getNickname()
+            )
+        ).toList();
+
+        return new BoardDto.Response.IntroPost(boards);
     }
 
     @Transactional

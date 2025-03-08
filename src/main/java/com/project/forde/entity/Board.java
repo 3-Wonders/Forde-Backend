@@ -56,8 +56,8 @@ public class Board {
     private Integer viewCount;
 
     @CreationTimestamp
-    @Column(name = "created_time", nullable = false, columnDefinition = "CURRENT_TIMESTAMP")
-    private LocalDateTime createdTime; //생성된 시간
+    @Column(name = "created_time", nullable = false, columnDefinition = "DEFAULT CURRENT_TIMESTAMP")
+    private LocalDateTime createdTime;
 
     @Column(name = "updated_time")
     private LocalDateTime updatedTime;

@@ -10,6 +10,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -97,7 +98,6 @@ public class BoardDto {
         @Setter
         @AllArgsConstructor
         public static class Boards {
-
             @Getter
             @Setter
             @AllArgsConstructor
@@ -116,6 +116,21 @@ public class BoardDto {
 
             private List<Board> boards;
             private Long total;
+        }
+
+        @Getter
+        @Setter
+        @AllArgsConstructor
+        @NoArgsConstructor
+        public static class IntroPost {
+            public record Item (
+                    Long boardId,
+                    String thumbnail,
+                    String title,
+                    String nickname
+            ) {}
+
+            private List<Item> boards;
         }
 
         @Getter
