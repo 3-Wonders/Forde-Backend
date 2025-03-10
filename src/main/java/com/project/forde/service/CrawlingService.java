@@ -117,7 +117,7 @@ public class CrawlingService {
 
             // 1. 썸네일 부분 처리
             String thumbnailUrl = crawlingDto.getThumbnailUrl();
-            if(excludeThumbnail.matcher(thumbnailUrl).find()) {
+            if(excludeThumbnail.matcher(thumbnailUrl).find() || thumbnailUrl.isBlank()) {
                 thumbnailUrl = null;
             }
 
