@@ -132,7 +132,7 @@ public class SnsService extends DefaultOAuth2UserService {
      */
     public Long create(String socialId, String email, String snsKind, String profilePath) {
         // AppUser 계정 생성
-        AppUser newAppUser = appUserService.createSnsUser(email, profilePath, snsKind);
+        AppUser newAppUser = appUserService.createSnsUser(email, profilePath);
 
         // SNS 계정 생성
         Sns newSnsUser = new Sns();

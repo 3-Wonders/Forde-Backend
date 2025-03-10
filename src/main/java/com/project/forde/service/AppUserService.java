@@ -464,15 +464,12 @@ public class AppUserService {
      * @param profilePath Provider 로부터 받은 프로필 사진 주소
      * @return 생성된 유저 정보
      */
-    public AppUser createSnsUser(String email, String profilePath, String snsKind) {
+    public AppUser createSnsUser(String email, String profilePath) {
         Optional<AppUser> appUser = appUserRepository.findByEmail(email);
 
-        appUser.ifPresent(user -> {
-            Optional<Sns> snsUser = snsRepository.findByAppUserAndSnsKind(user, snsKind);
-            if (snsUser.isPresent()) {
-                throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
-            }
-        });
+        if(appUser.isPresent()) {
+            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
+        }
 
         AppUser newAppUser = new AppUser();
         String name;
