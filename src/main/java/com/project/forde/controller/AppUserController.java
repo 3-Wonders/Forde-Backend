@@ -48,6 +48,15 @@ public class AppUserController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping(value = "/logout")
+    public ResponseEntity<?> logout(final HttpServletRequest request) {
+        final HttpSession session = request.getSession();
+
+        session.invalidate();
+
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping(value = "/verify")
     public ResponseEntity<?> sendVerificationCode(@RequestBody @Valid MailDto.Request.Send dto) {
         mailService.sendVerificationCode(dto);

@@ -105,7 +105,7 @@ public class CrawlingService {
         List<String> boardTitles = boardRepository.findAllDistinctTitles();
         Set<String> checkTitle = new HashSet<>(boardTitles); // 기존 DB의 게시물과 겹치는지 확인
         Pattern excludeTitle = Pattern.compile("\\[|]|아카데미|캠프|안내|모집|국비|교육|과정|센터|스쿨|지원");
-        Pattern excludeThumbnail = Pattern.compile("https|background-image|cdn.devsnote.com|ik.imagekit.io");
+        Pattern excludeThumbnail = Pattern.compile("hosoft|background-image|cdn.devsnote.com|ik.imagekit.io");
         List<Board> boards = new ArrayList<>();
         AppUser appUser = appUserService.getUser(testId);
 
@@ -140,11 +140,17 @@ public class CrawlingService {
                 wait.until(ExpectedConditions.visibilityOfElementLocated(By.cssSelector(".toastui-editor-contents")));
             }
             catch (TimeoutException e) {
-                log.info("타임아웃 발생 : ", e);
-                continue;
+                log.info("타임아웃 발생");
             }
 
             String content = detailPage.select("div.toastui-editor-contents").outerHtml();
+            if(content.isBlank()) {
+                content = detailPage.select("div.post-content.center-block.cke_editable p").outerHtml();
+            }
+            if(content.isBlank()) {
+                log.info("콘텐츠 없음");
+                continue;
+            }
             content = content.replace("$", "\\$");
 
             // HTML 특수문자 복원
