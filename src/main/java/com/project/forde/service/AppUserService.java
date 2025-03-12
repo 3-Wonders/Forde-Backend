@@ -391,17 +391,17 @@ public class AppUserService {
     /**
      * 회원가입을 수행합니다.
      * 1. 이메일 형식을 가지지 못하면 에러가 발생합니다.
-     * 2. 이메일이 중복되면 에러가 발생합니다.
+     * 2. 이미 존재하는 계정이라면 에러가 발생합니다.
      * 3. 비밀번호는 8 ~ 20자 이내이어야 하며, 영문자 및 특수문자가 1개씩 포함되지 않으면 에러가 발생합니다.
      * 4. 일반 알림 여부 및 이벤트성 알림 여부를 체크하지 않으면(true, false 설정 가능) 에러가 발생합니다.
      * 5. 닉네임은 User_7글자의 랜덤 문자열로 자동 생성됩니다.
      * @param dto (이메일, 비밀번호, 일반 알림 여부, 이벤트성 알림 여부)
      */
     public void createAppUser(AppUserDto.Request.Signup dto) {
-        Optional<AppUser> appUser = appUserRepository.findByEmail(dto.getEmail());
+        Optional<AppUser> appUser = appUserRepository.findByEmailAndUserPwIsNotNull(dto.getEmail());
 
         if (appUser.isPresent()) { // 이메일 중복
-            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
+            throw new CustomException(ErrorCode.DUPLICATED_ACCOUNT);
         }
 
         AppUser newUser = AppUserMapper.INSTANCE.toEntity(dto);
@@ -410,7 +410,7 @@ public class AppUserService {
         String name;
         do {
             name = "User_" + RandomStringUtils.random(7, 48, 122, true, true);
-        } while (appUserRepository.findByEmail(name).isPresent());
+        } while (appUserRepository.findByNickname(name).isPresent());
         newUser.setNickname(name);
 
         if(dto.getIsEnableNotification()) {
@@ -429,15 +429,15 @@ public class AppUserService {
     }
 
     /**
-     * 로그인을 수행합니다.
+     * Forde 계정의 로그인을 수행합니다.
      * 1. 이메일 및 비밀번호가 일치하지 않으면 에러가 발생합니다.
      * 2. 이메일 인증이 완료된 사용자가 아니면 에러가 발생합니다.
      * 3. 삭제된 사용자라면 에러가 발생합니다.
      * @param dto (이메일, 패스워드)
-     * @return
+     * @return 유저 아이디
      */
     public Long login(RequestLoginDto dto) {
-        AppUser user = appUserRepository.findByEmail(dto.getEmail())
+        AppUser user = appUserRepository.findByEmailAndUserPwIsNotNull(dto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         if(user.getDeleted()) {
@@ -465,18 +465,12 @@ public class AppUserService {
      * @return 생성된 유저 정보
      */
     public AppUser createSnsUser(String email, String profilePath) {
-        Optional<AppUser> appUser = appUserRepository.findByEmail(email);
-
-        if(appUser.isPresent()) {
-            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
-        }
-
         AppUser newAppUser = new AppUser();
         String name;
 
         do {
             name = "User_" + RandomStringUtils.random(7, 48, 122, true, true);
-        } while (appUserRepository.findByEmail(name).isPresent());
+        } while (appUserRepository.findByNickname(name).isPresent());
 
         newAppUser.setEmail(email);
         if(email != null) newAppUser.setVerified(true);
@@ -492,7 +486,7 @@ public class AppUserService {
      * @return 사용자 아이디
      */
     public Long setUserVerify(String email) {
-        AppUser appUser = appUserRepository.findByEmail(email)
+        AppUser appUser = appUserRepository.findByEmailAndUserPwIsNotNull(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         appUser.setVerified(true);
@@ -526,12 +520,6 @@ public class AppUserService {
      */
     public void updateEmail(Long userId, String email) {
         AppUser updateUser = getUser(userId);
-
-        Optional<AppUser> checkUser = appUserRepository.findByEmail(email);
-
-        if (checkUser.isPresent()) { // 이메일 중복
-            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
-        }
 
         updateUser.setEmail(email);
         updateUser.setVerified(true);

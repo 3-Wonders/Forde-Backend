@@ -56,6 +56,7 @@ public enum ErrorCode {
     DUPLICATED_EMAIL(HttpStatus.CONFLICT, "이메일 중복입니다.", "C40902"),
     DUPLICATED_SNS_ACCOUNT(HttpStatus.CONFLICT, "SNS 계정 중복입니다.", "C40903"),
     ALREADY_ADOPTED_COMMENT(HttpStatus.CONFLICT, "이미 채택된 댓글이 존재합니다.", "C40904"),
+    DUPLICATED_ACCOUNT(HttpStatus.CONFLICT, "이미 존재하는 계정입니다.", "C40905"),
 
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "알 수 없는 서버 에러가 발생하였습니다.", "I50000"),
     ERROR_EMAIL_SENDER(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 전송 오류가 발생하였습니다.", "I50001"),

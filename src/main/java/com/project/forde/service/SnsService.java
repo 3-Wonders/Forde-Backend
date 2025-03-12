@@ -1,5 +1,7 @@
 package com.project.forde.service;
 
+import com.project.forde.annotation.UserVerify;
+import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Sns;
 import com.project.forde.exception.CustomException;
@@ -131,6 +133,12 @@ public class SnsService extends DefaultOAuth2UserService {
      * @return
      */
     public Long create(String socialId, String email, String snsKind, String profilePath) {
+        Optional<Sns> sns = snsRepository.findBySnsId(socialId);
+
+        if(sns.isPresent()) {
+            throw new CustomException(ErrorCode.DUPLICATED_SNS_ACCOUNT);
+        }
+
         // AppUser 계정 생성
         AppUser newAppUser = appUserService.createSnsUser(email, profilePath);
 
@@ -222,4 +230,5 @@ public class SnsService extends DefaultOAuth2UserService {
 
         return userId;
     }
+
 }

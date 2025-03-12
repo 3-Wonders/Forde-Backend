@@ -91,7 +91,7 @@ public class MailService {
     @UserVerify
     public void verifyEmailPassword(MailDto.Request.EmailVerification dto) {
         Long userId = UserVerifyAspect.getUserId();
-        appUserRepository.findByEmail(dto.getEmail())
+        appUserRepository.findByEmailAndUserPwIsNotNull(dto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         String storedCode = (String) redisStore.get("email:verification:" + dto.getEmail(), "verificationCode");
