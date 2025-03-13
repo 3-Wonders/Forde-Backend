@@ -411,7 +411,7 @@ public class AppUserService {
 
         String name;
         do {
-            name = "User_" + RandomStringUtils.random(7, 48, 122, true, true);
+            name = "User_" + RandomStringUtils.random(5, 48, 122, true, true);
         } while (appUserRepository.findByNickname(name).isPresent());
         newUser.setNickname(name);
 
@@ -471,7 +471,7 @@ public class AppUserService {
         String name;
 
         do {
-            name = "User_" + RandomStringUtils.random(7, 48, 122, true, true);
+            name = "User_" + RandomStringUtils.random(5, 48, 122, true, true);
         } while (appUserRepository.findByNickname(name).isPresent());
 
         newAppUser.setEmail(email);
