@@ -72,11 +72,12 @@ public class SnsService extends DefaultOAuth2UserService {
                 }
 
                 Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-                if(profile == null) {
-                    throw new CustomException(ErrorCode.NOT_FOUND_SNS_PROFILE);
+//                if(profile == null) {
+//                    throw new CustomException(ErrorCode.NOT_FOUND_SNS_PROFILE);
+//                }
+                if(profile != null) {
+                    profilePath = (String) profile.get("profile_image_url");
                 }
-
-                profilePath = (String) profile.get("profile_image_url");
 
                 break;
             case "1002" : // 네이버

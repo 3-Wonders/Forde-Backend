@@ -24,6 +24,7 @@ public enum ErrorCode {
     CAN_NOT_LOG_MY_BOARD(HttpStatus.BAD_REQUEST, "자신의 게시글에는 로그를 남길 수 없습니다.", "B40013"),
     ALREADY_FOLLOW(HttpStatus.BAD_REQUEST, "이미 팔로우한 유저입니다.", "B40014"),
     NOT_NOTIFICATION_TYPE_FOLLOW(HttpStatus.BAD_REQUEST, "팔로우 타입의 알림이 아닙니다.", "B40015"),
+    CAN_NOT_USE_SNS_USER(HttpStatus.BAD_REQUEST, "SNS 유저는 사용 불가능한 기능입니다.", "B40016"),
 
     NOT_MATCHED_LOGIN_INFO(HttpStatus.UNAUTHORIZED, "이메일 또는 비밀번호가 일치하지 않습니다.", "U40101"),
     EXPIRED_COOKIE(HttpStatus.UNAUTHORIZED, "만료된 쿠키입니다.", "U40102"),

@@ -2,7 +2,9 @@ package com.project.forde.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.project.forde.annotation.ExtractUserId;
 import com.project.forde.annotation.UserVerify;
+import com.project.forde.aspect.ExtractUserIdAspect;
 import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.FileDto;
 import com.project.forde.dto.RequestLoginDto;
@@ -485,9 +487,19 @@ public class AppUserService {
      * @param email 사용자 이메일
      * @return 사용자 아이디
      */
+    @ExtractUserId
     public Long setUserVerify(String email) {
-        AppUser appUser = appUserRepository.findByEmailAndUserPwIsNotNull(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        Long userId = ExtractUserIdAspect.getUserId();
+        AppUser appUser = appUserRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        if(appUser.getEmail() == null) { // 이메일이 존재하지 않을 경우 -> SNS 로그인 과정에서 이메일을 넘겨받지 못한 경우 이메일 설정
+            appUser.setEmail(email);
+        }
+
+        if(appUser.getEmail() != null) { // 이메일이 존재할 경우(자체 회원가입일 경우) -> 회원이 존재하지 않을 경우 에러 발생
+            appUserRepository.findByEmailAndUserPwIsNotNull(email)
+                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        }
 
         appUser.setVerified(true);
 
@@ -505,6 +517,10 @@ public class AppUserService {
         Long userId = UserVerifyAspect.getUserId();
 
         AppUser appUser = getUser(userId);
+
+        if(appUser.getUserPw() == null) {
+            throw new CustomException(ErrorCode.CAN_NOT_USE_SNS_USER);
+        }
 
         appUser.setUserPw(PasswordUtils.encodePassword(passWord));
 
