@@ -64,6 +64,8 @@ public class BoardService {
     private final FileStore fileStore;
     private final RedisStore redisStore;
 
+    private final BoardMapper boardMapper;
+
     private BoardDto.Response.Boards createBoardsDto(Page<Board> boards) {
         List<BoardTag> boardTags = boardTagRepository.findAllByBoardTagPK_BoardIn(boards.toList());
         ListMultimap<Long, Tag> tagMap = ArrayListMultimap.create();
@@ -77,7 +79,7 @@ public class BoardService {
             List<Tag> tags = tagMap.get(board.getBoardId());
             List<TagDto.Response.TagWithoutCount> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
 
-            return BoardMapper.INSTANCE.toBoardsInBoard(board, responseTags);
+            return boardMapper.toBoardsInBoard(board, responseTags);
         }).toList();
 
         return new BoardDto.Response.Boards(mappingBoards, boards.getTotalElements());
@@ -150,7 +152,7 @@ public class BoardService {
             ));
         }
 
-        BoardDto.Response.Detail response = BoardMapper.INSTANCE.toDetail(board, responseTags);
+        BoardDto.Response.Detail response = boardMapper.toDetail(board, responseTags);
         if (isCreated) {
             response.setViewCount(response.getViewCount() + 1);
         }
@@ -175,7 +177,7 @@ public class BoardService {
         List<BoardImage> boardImages = boardImageRepository.findAllByBoard(board);
         List<Long> imageIds = boardImages.stream().map(BoardImage::getImageId).toList();
 
-        return BoardMapper.INSTANCE.toUpdatePost(board, responseTags, imageIds);
+        return boardMapper.toUpdatePost(board, responseTags, imageIds);
     }
 
     public BoardDto.Response.Boards getDailyNews(final int page, final int count) {
@@ -198,7 +200,7 @@ public class BoardService {
     private BoardDto.Response.IntroPost fetchRecommendNews() {
         List<IntroPostProjection> recommendNews = recommendService.getRecommendNews();
         List<BoardDto.Response.IntroPost.Item> boards = recommendNews.stream().map(
-            recommendNewsProjection -> BoardMapper.INSTANCE.toIntroPostItem(
+            recommendNewsProjection -> boardMapper.toIntroPostItem(
                 recommendNewsProjection.getBoardId(),
                 recommendNewsProjection.getThumbnail(),
                 recommendNewsProjection.getTitle(),
@@ -245,7 +247,7 @@ public class BoardService {
 
         List<IntroPostProjection> recommendWithoutNews = boardRepository.findAllByMonthlyPosts(now.getNMonth(1));
         List<BoardDto.Response.IntroPost.Item> boards = recommendWithoutNews.stream().map(
-            recommendNewsProjection -> BoardMapper.INSTANCE.toIntroPostItem(
+            recommendNewsProjection -> boardMapper.toIntroPostItem(
                 recommendNewsProjection.getBoardId(),
                 recommendNewsProjection.getThumbnail(),
                 recommendNewsProjection.getTitle(),
@@ -266,7 +268,7 @@ public class BoardService {
             throw new CustomException(ErrorCode.DELETED_USER);
         }
 
-        Board board = BoardMapper.INSTANCE.toEntity(user, request, null);
+        Board board = boardMapper.toEntity(user, request, null);
         Board createdBoard = boardRepository.save(board);
 
         List<Tag> tags = tagService.increaseTagCount(request.getTagIds());

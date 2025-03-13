@@ -8,14 +8,13 @@ import com.project.forde.entity.Board;
 import com.project.forde.entity.Comment;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Mapper(uses = CustomTimestampMapper.class)
+@Component
+@Mapper(componentModel = "spring", uses = { CustomTimestampMapper.class, FileUrlResolver.class })
 public interface BoardMapper {
-    BoardMapper INSTANCE = Mappers.getMapper(BoardMapper.class);
-
     @Mapping(source = "user", target = "uploader")
     @Mapping(source = "request.boardType", target = "category")
     @Mapping(source = "request.title", target = "title")
@@ -29,7 +28,7 @@ public interface BoardMapper {
     Board toEntity(AppUser user, BoardDto.Request.Create request, FileDto file);
 
     @Mapping(source = "board.boardId", target = "boardId")
-    @Mapping(source = "board.thumbnailPath", target = "thumbnail")
+    @Mapping(source = "board.thumbnailPath", target = "thumbnail", qualifiedByName = "getDefaultThumbnailPath")
     @Mapping(source = "board.title", target = "title")
     @Mapping(source = "tags", target = "tags")
     @Mapping(source = "board.isLike", target = "isLike")
@@ -45,7 +44,7 @@ public interface BoardMapper {
     @Mapping(source = "board.uploader", target = "uploader")
     @Mapping(source = "board.title", target = "title")
     @Mapping(source = "board.content", target = "content")
-    @Mapping(source = "board.thumbnailPath", target = "thumbnail")
+    @Mapping(source = "board.thumbnailPath", target = "thumbnail", qualifiedByName = "getDefaultThumbnailPath")
     @Mapping(source = "tags", target = "tags")
     @Mapping(source = "board.isLike", target = "isLike")
     @Mapping(source = "board.viewCount", target = "viewCount")
@@ -58,7 +57,7 @@ public interface BoardMapper {
     @Mapping(source = "board.category", target = "boardType")
     @Mapping(source = "board.title", target = "title")
     @Mapping(source = "board.content", target = "content")
-    @Mapping(source = "board.thumbnailPath", target = "thumbnail")
+    @Mapping(source = "board.thumbnailPath", target = "thumbnail", qualifiedByName = "getDefaultThumbnailPath")
     @Mapping(source = "tags", target = "tags")
     @Mapping(source = "imageIds", target = "imageIds")
     @Mapping(source = "board.createdTime", target = "createdTime", qualifiedBy = { MapCreatedTime.class, CustomTimestampTranslator.class })
@@ -68,7 +67,7 @@ public interface BoardMapper {
     @Mapping(source = "board.category", target = "boardType")
     @Mapping(source = "board.uploader", target = "uploader")
     @Mapping(source = "board.title", target = "title")
-    @Mapping(source = "board.thumbnailPath", target = "thumbnail")
+    @Mapping(source = "board.thumbnailPath", target = "thumbnail", qualifiedByName = "getDefaultThumbnailPath")
     @Mapping(source = "tags", target = "tags")
     @Mapping(source = "board.isLike", target = "isLike")
     @Mapping(source = "board.viewCount", target = "viewCount")
@@ -81,7 +80,7 @@ public interface BoardMapper {
     @Mapping(source = "board.category", target = "boardType")
     @Mapping(source = "board.uploader", target = "uploader")
     @Mapping(source = "board.title", target = "title")
-    @Mapping(source = "board.thumbnailPath", target = "thumbnail")
+    @Mapping(source = "board.thumbnailPath", target = "thumbnail", qualifiedByName = "getDefaultThumbnailPath")
     @Mapping(source = "tags", target = "tags")
     @Mapping(source = "board.isLike", target = "isLike")
     @Mapping(source = "board.viewCount", target = "viewCount")
@@ -92,7 +91,7 @@ public interface BoardMapper {
     BoardDto.Response.UserComments.UserComment toUserCommentInBoards(Board board, List<TagDto.Response.TagWithoutCount> tags, Comment comment);
 
     @Mapping(source = "boardId", target = "boardId")
-    @Mapping(source = "thumbnail", target = "thumbnail")
+    @Mapping(source = "thumbnail", target = "thumbnail", qualifiedByName = "getDefaultThumbnailPath")
     @Mapping(source = "title", target = "title")
     @Mapping(source = "nickname", target = "nickname")
     BoardDto.Response.IntroPost.Item toIntroPostItem(Long boardId, String thumbnail, String title, String nickname);
