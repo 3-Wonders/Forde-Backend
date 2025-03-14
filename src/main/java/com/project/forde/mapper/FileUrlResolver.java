@@ -10,13 +10,13 @@ import org.springframework.stereotype.Component;
 public class FileUrlResolver {
     private final FileStore fileStore;
 
-    @Named("getDefaultProfilePath")
-    public String getDefaultProfilePath(String storePath) {
-        return fileStore.getDefaultProfilePath(storePath);
+    @Named("getProfilePath")
+    public String getProfilePath(String storePath) {
+        return fileStore.getProfilePath(storePath);
     }
 
-    @Named("getDefaultThumbnailPath")
-    public String getDefaultThumbnailPath(String storePath) {
-        return fileStore.getDefaultThumbnailPath(storePath);
+    @Named("getThumbnailPath")
+    public String getThumbnailPath(String storePath) {
+        return fileStore.getThumbnailPath(storePath);
     }
 }

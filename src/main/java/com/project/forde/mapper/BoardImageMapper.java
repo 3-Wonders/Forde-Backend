@@ -18,6 +18,6 @@ public interface BoardImageMapper {
     BoardImage toEntityWithoutBoard(FileDto image);
 
     @Mapping(source = "image.imageId", target = "imageId")
-    @Mapping(source = "image.imagePath", target = "path", qualifiedByName = "getDefaultThumbnailPath")
+    @Mapping(source = "image.imagePath", target = "path", qualifiedByName = "getThumbnailPath")
     DummyImageDto.Response.Image toImage(BoardImage image);
 }

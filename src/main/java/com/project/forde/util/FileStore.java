@@ -18,13 +18,9 @@ import java.util.UUID;
 @Component
 public class FileStore {
     private final Bucket bucket;
-    private String defaultThumbnailPath;
-    private String defaultProfilePath;
 
     public FileStore(Bucket bucket) {
         this.bucket = bucket;
-        this.defaultThumbnailPath = initialDefaultThumbnailPath();
-        this.defaultProfilePath = initialDefaultProfilePath();
     }
 
     private String getStoreFileName(String ext) {
@@ -37,36 +33,31 @@ public class FileStore {
         return originalFilename.substring(pos + 1);
     }
 
-    private String initialDefaultThumbnailPath() {
-        return defaultThumbnailPath = String.format(
+    private String getPath(String storePath) {
+        return String.format(
                 "https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
                 bucket.getName(),
-                URLEncoder.encode("board/default.png", StandardCharsets.UTF_8)
+                URLEncoder.encode(storePath, StandardCharsets.UTF_8)
         );
     }
 
-    private String initialDefaultProfilePath() {
-        return defaultProfilePath = String.format(
-                "https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
-                bucket.getName(),
-                URLEncoder.encode("profile/default.png", StandardCharsets.UTF_8)
-        );
-    }
+    public String getProfilePath(String storePath) {
+        log.info("get default thumbnail path: [storePath : {}]", storePath);
 
-    public String getDefaultProfilePath(String storePath) {
-        if (defaultProfilePath == null || storePath == null || storePath.isEmpty()) {
-            initialDefaultProfilePath();
+        if (storePath == null || storePath.isEmpty()) {
+            return getPath("profile/default.png");
         }
 
-        return defaultProfilePath;
+        return getPath(storePath);
     }
 
-    public String getDefaultThumbnailPath(String storePath) {
-        if (defaultThumbnailPath == null || storePath == null || storePath.isEmpty()) {
-            initialDefaultThumbnailPath();
+    public String getThumbnailPath(String storePath) {
+        log.info("get default thumbnail path: [storePath : {}]", storePath);
+        if (storePath == null || storePath.isEmpty()) {
+            return getPath("thumbnail/default.png");
         }
 
-        return defaultThumbnailPath;
+        return getPath(storePath);
     }
 
     public FileDto storeFile(String directoryPath, MultipartFile file) {

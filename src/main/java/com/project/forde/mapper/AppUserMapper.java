@@ -25,7 +25,7 @@ public interface AppUserMapper {
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
     @Mapping(source = "user.description", target = "description")
-    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getDefaultProfilePath")
+    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getProfilePath")
     @Mapping(source = "user.boardCount", target = "boardCount")
     @Mapping(source = "user.newsCount", target = "newsCount")
     @Mapping(source = "user.likeCount", target = "likeCount")
@@ -38,13 +38,13 @@ public interface AppUserMapper {
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
     @Mapping(source = "user.email", target = "email")
-    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getDefaultProfilePath")
+    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getProfilePath")
     AppUserDto.Response.Intro toResponseIntroUserDto(AppUser user);
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
     @Mapping(source = "user.description", target = "description")
-    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getDefaultProfilePath")
+    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getProfilePath")
     @Mapping(source = "interestedTags", target = "interestedTags")
     @Mapping(source = "user.boardCount", target = "boardCount")
     @Mapping(source = "user.newsCount", target = "newsCount")
@@ -59,7 +59,7 @@ public interface AppUserMapper {
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
-    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getDefaultProfilePath")
+    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getProfilePath")
     AppUserDto.Response.SearchUserNickname toResponseSearchNicknameDto(AppUser user);
 
     @Mapping(source = "user.userId", target = "userId")
