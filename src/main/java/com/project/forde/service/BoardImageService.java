@@ -32,6 +32,7 @@ public class BoardImageService {
     private final BoardImageRepository boardImageRepository;
 
     private final FileStore fileStore;
+    private final BoardImageMapper boardImageMapper;
 
     @UserVerify
     public DummyImageDto.Response.Image createImage(final MultipartFile image) {
@@ -40,14 +41,14 @@ public class BoardImageService {
 
         try {
             file = fileStore.storeFile(ImagePathEnum.BOARD.getPath(), image);
-            dummyImage = boardImageRepository.save(BoardImageMapper.INSTANCE.toEntityWithoutBoard(file));
+            dummyImage = boardImageRepository.save(boardImageMapper.toEntityWithoutBoard(file));
         } catch (Exception e) {
             if (file != null) {
                 throw new FileUploadException(file.getStorePath());
             }
         }
 
-        return BoardImageMapper.INSTANCE.toImage(dummyImage);
+        return boardImageMapper.toImage(dummyImage);
     }
 
     public<T> void createImages(T entity, List<Long> ids) {

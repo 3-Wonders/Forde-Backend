@@ -9,7 +9,6 @@ import com.project.forde.entity.composite.BoardLikePK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.mapper.LikeMapper;
-import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.BoardRepository;
 import com.project.forde.repository.LikeRepository;
 import com.project.forde.type.AppUserCount;

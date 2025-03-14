@@ -6,7 +6,6 @@ import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Sns;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
-import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.SnsRepository;
 import com.project.forde.type.SocialTypeEnum;
 import jakarta.servlet.http.HttpServletRequest;

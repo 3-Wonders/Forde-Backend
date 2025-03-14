@@ -5,16 +5,17 @@ import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.AppUser;
+import com.project.forde.util.FileStore;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-@Mapper(uses = CustomTimestampTranslator.class)
+@Component
+@Mapper(componentModel = "spring", uses = { FileUrlResolver.class })
 public interface AppUserMapper {
-    AppUserMapper INSTANCE = Mappers.getMapper(AppUserMapper.class);
-
     @Mapping(source = "request.email", target = "email")
     @Mapping(source = "request.password", target = "userPw")
     @Mapping(source = "request.isEnableNotification", target = "noticeNotification")
@@ -24,7 +25,7 @@ public interface AppUserMapper {
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
     @Mapping(source = "user.description", target = "description")
-    @Mapping(source = "user.profilePath", target = "profilePath")
+    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getProfilePath")
     @Mapping(source = "user.boardCount", target = "boardCount")
     @Mapping(source = "user.newsCount", target = "newsCount")
     @Mapping(source = "user.likeCount", target = "likeCount")
@@ -37,13 +38,13 @@ public interface AppUserMapper {
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
     @Mapping(source = "user.email", target = "email")
-    @Mapping(source = "user.profilePath", target = "profilePath")
+    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getProfilePath")
     AppUserDto.Response.Intro toResponseIntroUserDto(AppUser user);
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
     @Mapping(source = "user.description", target = "description")
-    @Mapping(source = "user.profilePath", target = "profilePath")
+    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getProfilePath")
     @Mapping(source = "interestedTags", target = "interestedTags")
     @Mapping(source = "user.boardCount", target = "boardCount")
     @Mapping(source = "user.newsCount", target = "newsCount")
@@ -58,7 +59,7 @@ public interface AppUserMapper {
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")
-    @Mapping(source = "user.profilePath", target = "profilePath")
+    @Mapping(source = "user.profilePath", target = "profilePath", qualifiedByName = "getProfilePath")
     AppUserDto.Response.SearchUserNickname toResponseSearchNicknameDto(AppUser user);
 
     @Mapping(source = "user.userId", target = "userId")

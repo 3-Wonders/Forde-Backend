@@ -1,11 +1,8 @@
 package com.project.forde.service;
 
-import com.project.forde.annotation.ExtractUserId;
 import com.project.forde.annotation.UserVerify;
-import com.project.forde.aspect.ExtractUserIdAspect;
 import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.mail.MailDto;
-import com.project.forde.entity.AppUser;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.repository.AppUserRepository;

@@ -48,7 +48,7 @@ public class CommentService {
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_BOARD));
 
         Pageable pageable = Pageable.ofSize(count).withPage(page - 1);
-        Page<Comment> response = commentRepository.findAllByBoardOrderByCommentIdDesc(board, pageable);
+        Page<Comment> response = commentRepository.findAllByBoardAndParentIsNullOrderByCommentIdDesc(board, pageable);
 
         return getComments(response.getContent());
     }
@@ -272,7 +272,7 @@ public class CommentService {
                                         mention.getMentionPK().getUser().getNickname()
                                 )
                         ).toList(),
-                        comment.getParent() != null && comment.getParent().getCommentId() != null
+                        comment.getHasReply()
                 )
         ).toList();
 

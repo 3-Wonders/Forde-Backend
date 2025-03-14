@@ -38,6 +38,7 @@ out/
 
 ### env ###
 application.properties
+crawling.properties
 firebase.json
 
 ### Test ###

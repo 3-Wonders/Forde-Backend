@@ -1,12 +1,10 @@
 package com.project.forde.config;
 
-import com.project.forde.entity.Sns;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.repository.SnsRepository;
 import com.project.forde.service.AppUserService;
 import com.project.forde.service.SnsService;
-import jakarta.servlet.http.HttpSession;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;

@@ -54,10 +54,13 @@ public class AppUserService {
     private final LikeRepository likeRepository;
     private final RedisStore redisStore;
     private final FileStore fileStore;
+    private final BoardMapper boardMapper;
+    
+    private final AppUserMapper appUserMapper;
 
     public ResponseOtherUserDto getOtherUser(Long userId) {
         AppUser user = this.getUser(userId);
-        return AppUserMapper.INSTANCE.toResponseOtherUserDto(user);
+        return appUserMapper.toResponseOtherUserDto(user);
     }
 
     /**
@@ -191,7 +194,7 @@ public class AppUserService {
             List<Tag> tags = tagMap.get(board.getBoardId());
             List<TagDto.Response.TagWithoutCount> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
 
-            return BoardMapper.INSTANCE.toUserBoardsInBoard(board, responseTags);
+            return boardMapper.toUserBoardsInBoard(board, responseTags);
         }).toList();
 
         return new BoardDto.Response.UserBoards(mappingBoards, boards.getTotalElements());
@@ -259,7 +262,7 @@ public class AppUserService {
             List<Tag> tags = boardTags.stream().map(boardTag -> boardTag.getBoardTagPK().getTag()).toList();
             List<TagDto.Response.TagWithoutCount> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
 
-            return BoardMapper.INSTANCE.toUserCommentInBoards(board, responseTags, comment);
+            return boardMapper.toUserCommentInBoards(board, responseTags, comment);
         }).toList();
 
         return new BoardDto.Response.UserComments(mappingBoards, comments.getTotalElements());
@@ -275,7 +278,7 @@ public class AppUserService {
 
         AppUser appUser = getUser(userId);
 
-        return AppUserMapper.INSTANCE.toResponseIntroUserDto(appUser);
+        return appUserMapper.toResponseIntroUserDto(appUser);
     }
 
     @UserVerify
@@ -284,7 +287,7 @@ public class AppUserService {
 
         AppUser appUser = getUser(userId);
 
-        return AppUserMapper.INSTANCE.toResponseSnsDto(appUser);
+        return appUserMapper.toResponseSnsDto(appUser);
     }
 
     @UserVerify
@@ -293,7 +296,7 @@ public class AppUserService {
 
         AppUser appUser = getUser(userId);
 
-        return AppUserMapper.INSTANCE.toResponseMyNotificationInfoDto(appUser);
+        return appUserMapper.toResponseMyNotificationInfoDto(appUser);
     }
 
     /**
@@ -313,7 +316,7 @@ public class AppUserService {
         List<Tag> tags = tagRepository.findAllByTagIdIn(interestTagIds);
         List<TagDto.Response.TagWithoutCount> responseTags = tags.stream().map(TagMapper.INSTANCE::toTagWithoutCount).toList();
 
-        return AppUserMapper.INSTANCE.toResponseMyInfoDto(appUser, responseTags);
+        return appUserMapper.toResponseMyInfoDto(appUser, responseTags);
     }
 
     /**
@@ -340,7 +343,7 @@ public class AppUserService {
                 ))
                 .toList();
 
-        return AppUserMapper.INSTANCE.toResponseAccountDto(appUser, snsInfos);
+        return appUserMapper.toResponseAccountDto(appUser, snsInfos);
 
     }
 
@@ -356,7 +359,7 @@ public class AppUserService {
 
         Page<AppUser> appUsers = appUserRepository.findAllByNicknameContaining(pageable, nickname);
 
-        return appUsers.stream().map(AppUserMapper.INSTANCE::toResponseSearchNicknameDto).toList();
+        return appUsers.stream().map(appUserMapper::toResponseSearchNicknameDto).toList();
     }
 
     /**
@@ -407,7 +410,7 @@ public class AppUserService {
             throw new CustomException(ErrorCode.DUPLICATED_ACCOUNT);
         }
 
-        AppUser newUser = AppUserMapper.INSTANCE.toEntity(dto);
+        AppUser newUser = appUserMapper.toEntity(dto);
         newUser.setUserPw(PasswordUtils.encodePassword(dto.getPassword()));
 
         String name;

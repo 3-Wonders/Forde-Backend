@@ -4,7 +4,6 @@ import com.project.forde.annotation.ExtractUserId;
 import com.project.forde.aspect.ExtractUserIdAspect;
 import com.project.forde.dto.RequestLoginDto;
 import com.project.forde.dto.mail.MailDto;
-import com.project.forde.dto.RequestUpdateProfileDto;
 import com.project.forde.dto.appuser.AppUserDto;
 import com.project.forde.service.AppUserService;
 import com.project.forde.service.FollowService;
