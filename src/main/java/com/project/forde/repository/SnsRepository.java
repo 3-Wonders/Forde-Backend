@@ -10,4 +10,5 @@ import java.util.Optional;
 public interface SnsRepository extends JpaRepository<Sns, String> {
     Optional<Sns> findBySnsId(String userId);
     List<Sns> findAllByAppUser(AppUser appUser);
+    Optional<Sns> findByAppUserAndSnsKind(AppUser appUser, String snsKind);
 }

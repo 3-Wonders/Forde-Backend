@@ -1,5 +1,7 @@
 package com.project.forde.service;
 
+import com.project.forde.annotation.UserVerify;
+import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.Sns;
 import com.project.forde.exception.CustomException;
@@ -69,11 +71,12 @@ public class SnsService extends DefaultOAuth2UserService {
                 }
 
                 Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-                if(profile == null) {
-                    throw new CustomException(ErrorCode.NOT_FOUND_SNS_PROFILE);
+//                if(profile == null) {
+//                    throw new CustomException(ErrorCode.NOT_FOUND_SNS_PROFILE);
+//                }
+                if(profile != null) {
+                    profilePath = (String) profile.get("profile_image_url");
                 }
-
-                profilePath = (String) profile.get("profile_image_url");
 
                 break;
             case "1002" : // 네이버
@@ -114,10 +117,7 @@ public class SnsService extends DefaultOAuth2UserService {
         }
         // 로그인일 경우
         else {
-            Long userId = sns.get().getAppUser().getUserId();
-            appUserService.getUser(userId);
-
-            return userId;
+            return sns.get().getAppUser().getUserId();
         }
     }
 
@@ -130,6 +130,12 @@ public class SnsService extends DefaultOAuth2UserService {
      * @return
      */
     public Long create(String socialId, String email, String snsKind, String profilePath) {
+        Optional<Sns> sns = snsRepository.findBySnsId(socialId);
+
+        if(sns.isPresent()) {
+            throw new CustomException(ErrorCode.DUPLICATED_SNS_ACCOUNT);
+        }
+
         // AppUser 계정 생성
         AppUser newAppUser = appUserService.createSnsUser(email, profilePath);
 
@@ -221,4 +227,5 @@ public class SnsService extends DefaultOAuth2UserService {
 
         return userId;
     }
+
 }

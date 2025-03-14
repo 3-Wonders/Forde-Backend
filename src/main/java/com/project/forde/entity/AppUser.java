@@ -22,7 +22,7 @@ public class AppUser {
     @Column(name = "user_pw", nullable = false, length = 300)
     private String userPw; // 사용자PW => 암호화 => SNS 로그인 시 필요x
 
-    @Column(name = "email", unique = true, length = 60)
+    @Column(name = "email", length = 60)
     private String email; // 이메일
 
     @Column(name = "profile_path", length = 200)

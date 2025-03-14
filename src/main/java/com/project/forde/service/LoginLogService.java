@@ -2,6 +2,9 @@ package com.project.forde.service;
 
 import com.project.forde.entity.AppUser;
 import com.project.forde.entity.LoginLog;
+import com.project.forde.exception.CustomException;
+import com.project.forde.exception.ErrorCode;
+import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.LoginLogRepository;
 import com.project.forde.util.CustomTimestamp;
 import lombok.RequiredArgsConstructor;
@@ -15,12 +18,12 @@ import java.util.Optional;
 @Slf4j
 public class LoginLogService {
     private final LoginLogRepository loginLogRepository;
-
-    private final AppUserService appUserService;
+    private final AppUserRepository appUserRepository;
 
     public void saveLoginLog(Long userId) {
         log.info("Saving login log for userId = {}", userId);
-        AppUser user = appUserService.getUser(userId);
+        AppUser user = appUserRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         Optional<LoginLog> loginLog = loginLogRepository.findByUser(user);
 

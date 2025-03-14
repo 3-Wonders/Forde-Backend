@@ -13,6 +13,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import static org.hibernate.query.sqm.tree.SqmNode.log;
+
 @Service
 @RequiredArgsConstructor
 public class MailService {
@@ -85,10 +87,8 @@ public class MailService {
      * 이메일 인증코드 유효성 검사 및 비밀번호 변경을 수행합니다.
      * @param dto (이메일, 발급받은 인증코드)
      */
-    @UserVerify
     public void verifyEmailPassword(MailDto.Request.EmailVerification dto) {
-        Long userId = UserVerifyAspect.getUserId();
-        appUserRepository.findByEmail(dto.getEmail())
+        appUserRepository.findByEmailAndUserPwIsNotNull(dto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         String storedCode = (String) redisStore.get("email:verification:" + dto.getEmail(), "verificationCode");
@@ -99,7 +99,7 @@ public class MailService {
 
 
         String randomKey = RandomStringUtils.random(48, 33, 125, true, true);
-        redisStore.set("email:randomKey:" + userId, "randomKeyValue", randomKey, 10);
+        redisStore.set("email:randomKey:" + dto.getEmail(), "randomKeyValue", randomKey, 10);
 
         String title = "Forde 비밀번호 변경 페이지 URL";
         String content = "Forde 비밀번호 변경 페이지 URL 입니다. : http://localhost:5173/ch-password?key=" + randomKey;
@@ -108,11 +108,11 @@ public class MailService {
 
     /**
      * 랜덤키 유효성 검사를 수행합니다.
-     * @param userId 사용자 아이디
-     * @param randomKey 사용자가 발급받은 랜덤키
+     * @param email (이메일 )
+     * @param randomKey (랜덤키)
      */
-    public void verifyRandomKey(Long userId, String randomKey) {
-        String storedRandomKey = (String) redisStore.get("email:randomKey:" + userId, "randomKeyValue");
+    public void verifyRandomKey(String email, String randomKey) {
+        String storedRandomKey = (String) redisStore.get("email:randomKey:" + email, "randomKeyValue");
 
         if(storedRandomKey == null) {
             throw new CustomException(ErrorCode.EXPIRED_RANDOM_KEY);
@@ -126,12 +126,9 @@ public class MailService {
      * 랜덤키 유효성 검사 및 사용자 비밀번호 변경를 수행합니다.
      * @param dto (변경할 비밀번호, 발급받은 랜덤키)
      */
-    @UserVerify
     public void verifyRandomKeyWithUpdatePassword(MailDto.Request.UpdatePassword dto) {
-        Long userId = UserVerifyAspect.getUserId();
-        verifyRandomKey(userId, dto.getRandomKey());
-
-        appUserService.updatePassword(dto.getPassword());
+        verifyRandomKey(dto.getEmail(), dto.getRandomKey());
+        appUserService.updatePassword(dto.getEmail(), dto.getPassword());
     }
 
     /**

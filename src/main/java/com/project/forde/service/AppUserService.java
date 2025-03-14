@@ -2,7 +2,9 @@ package com.project.forde.service;
 
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ListMultimap;
+import com.project.forde.annotation.ExtractUserId;
 import com.project.forde.annotation.UserVerify;
+import com.project.forde.aspect.ExtractUserIdAspect;
 import com.project.forde.aspect.UserVerifyAspect;
 import com.project.forde.dto.FileDto;
 import com.project.forde.dto.RequestLoginDto;
@@ -26,6 +28,7 @@ import com.project.forde.util.FileStore;
 import com.project.forde.util.PasswordUtils;
 import com.project.forde.util.RedisStore;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -394,17 +397,17 @@ public class AppUserService {
     /**
      * 회원가입을 수행합니다.
      * 1. 이메일 형식을 가지지 못하면 에러가 발생합니다.
-     * 2. 이메일이 중복되면 에러가 발생합니다.
+     * 2. 이미 존재하는 계정이라면 에러가 발생합니다.
      * 3. 비밀번호는 8 ~ 20자 이내이어야 하며, 영문자 및 특수문자가 1개씩 포함되지 않으면 에러가 발생합니다.
      * 4. 일반 알림 여부 및 이벤트성 알림 여부를 체크하지 않으면(true, false 설정 가능) 에러가 발생합니다.
      * 5. 닉네임은 User_7글자의 랜덤 문자열로 자동 생성됩니다.
      * @param dto (이메일, 비밀번호, 일반 알림 여부, 이벤트성 알림 여부)
      */
     public void createAppUser(AppUserDto.Request.Signup dto) {
-        Optional<AppUser> appUser = appUserRepository.findByEmail(dto.getEmail());
+        Optional<AppUser> appUser = appUserRepository.findByEmailAndUserPwIsNotNull(dto.getEmail());
 
         if (appUser.isPresent()) { // 이메일 중복
-            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
+            throw new CustomException(ErrorCode.DUPLICATED_ACCOUNT);
         }
 
         AppUser newUser = appUserMapper.toEntity(dto);
@@ -412,8 +415,8 @@ public class AppUserService {
 
         String name;
         do {
-            name = "User_" + RandomStringUtils.random(7, 48, 122, true, true);
-        } while (appUserRepository.findByEmail(name).isPresent());
+            name = "User_" + RandomStringUtils.random(5, 48, 122, true, true);
+        } while (appUserRepository.findByNickname(name).isPresent());
         newUser.setNickname(name);
 
         if(dto.getIsEnableNotification()) {
@@ -432,30 +435,32 @@ public class AppUserService {
     }
 
     /**
-     * 로그인을 수행합니다.
+     * Forde 계정의 로그인을 수행합니다.
      * 1. 이메일 및 비밀번호가 일치하지 않으면 에러가 발생합니다.
      * 2. 이메일 인증이 완료된 사용자가 아니면 에러가 발생합니다.
      * 3. 삭제된 사용자라면 에러가 발생합니다.
      * @param dto (이메일, 패스워드)
-     * @return
+     * @return 유저 아이디
      */
-    public Long login(RequestLoginDto dto) {
-        AppUser user = appUserRepository.findByEmail(dto.getEmail())
+    public void login(RequestLoginDto dto, final HttpServletRequest request) {
+        AppUser user = appUserRepository.findByEmailAndUserPwIsNotNull(dto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-
-        if(user.getDeleted()) {
-            throw new CustomException(ErrorCode.DELETED_USER);
-        }
-
-        if(!user.getVerified()) {
-            throw new CustomException(ErrorCode.NOT_VERIFIED_USER);
-        }
 
         if(!PasswordUtils.checkPassword(dto.getPassword(), user.getUserPw())) {
             throw new CustomException(ErrorCode.NOT_MATCHED_LOGIN_INFO);
         }
 
-        return user.getUserId();
+        if(user.getDeleted()) {
+            throw new CustomException(ErrorCode.DELETED_USER);
+        }
+
+        final HttpSession session = request.getSession();
+
+        session.setAttribute("userId", user.getUserId());
+
+        if(!user.getVerified()) {
+            throw new CustomException(ErrorCode.NOT_VERIFIED_USER);
+        }
     }
 
     /**
@@ -467,19 +472,13 @@ public class AppUserService {
      * @param profilePath Provider 로부터 받은 프로필 사진 주소
      * @return 생성된 유저 정보
      */
-    public AppUser createSnsUser(String email,String profilePath) {
-        Optional<AppUser> appUser = appUserRepository.findByEmail(email);
-
-        if (appUser.isPresent()) { // 이메일 중복
-            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
-        }
-
+    public AppUser createSnsUser(String email, String profilePath) {
         AppUser newAppUser = new AppUser();
         String name;
 
         do {
-            name = "User_" + RandomStringUtils.random(7, 48, 122, true, true);
-        } while (appUserRepository.findByEmail(name).isPresent());
+            name = "User_" + RandomStringUtils.random(5, 48, 122, true, true);
+        } while (appUserRepository.findByNickname(name).isPresent());
 
         newAppUser.setEmail(email);
         if(email != null) newAppUser.setVerified(true);
@@ -494,9 +493,19 @@ public class AppUserService {
      * @param email 사용자 이메일
      * @return 사용자 아이디
      */
+    @ExtractUserId
     public Long setUserVerify(String email) {
-        AppUser appUser = appUserRepository.findByEmail(email)
-                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        Long userId = ExtractUserIdAspect.getUserId();
+        AppUser appUser = appUserRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+
+        if(appUser.getEmail() == null) { // 이메일이 존재하지 않을 경우 -> SNS 로그인 과정에서 이메일을 넘겨받지 못한 경우 이메일 설정
+            appUser.setEmail(email);
+        }
+
+        if(appUser.getEmail() != null) { // 이메일이 존재할 경우(자체 회원가입일 경우) -> 회원이 존재하지 않을 경우 에러 발생
+            appUserRepository.findByEmailAndUserPwIsNotNull(email)
+                    .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
+        }
 
         appUser.setVerified(true);
 
@@ -507,19 +516,19 @@ public class AppUserService {
 
     /**
      * 사용자의 비밀번호를 수정합니다.
+     * @param email 변경하고자 하는 계정의 이메일
      * @param passWord 변경하고자 하는 비밀번호
      */
-    @UserVerify
-    public void updatePassword(String passWord) {
-        Long userId = UserVerifyAspect.getUserId();
-
-        AppUser appUser = getUser(userId);
+    public void updatePassword(String email, String passWord) {
+        System.out.println("여기 들어옴");
+        AppUser appUser = appUserRepository.findByEmailAndUserPwIsNotNull(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         appUser.setUserPw(PasswordUtils.encodePassword(passWord));
 
         appUserRepository.save(appUser);
 
-        redisStore.deleteField("email:randomKey:" + userId, "randomKeyValue");
+        redisStore.deleteField("email:randomKey:" + email, "randomKeyValue");
     }
 
     /**
@@ -529,12 +538,6 @@ public class AppUserService {
      */
     public void updateEmail(Long userId, String email) {
         AppUser updateUser = getUser(userId);
-
-        Optional<AppUser> checkUser = appUserRepository.findByEmail(email);
-
-        if (checkUser.isPresent()) { // 이메일 중복
-            throw new CustomException(ErrorCode.DUPLICATED_EMAIL);
-        }
 
         updateUser.setEmail(email);
         updateUser.setVerified(true);

@@ -39,10 +39,16 @@ public class AppUserController {
 
     @PostMapping(value="/login")
     public ResponseEntity<?> publicLogin(@Valid @RequestBody RequestLoginDto dto, final HttpServletRequest request) {
-        Long userId = appUserService.login(dto);
+        appUserService.login(dto, request);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping(value = "/logout")
+    public ResponseEntity<?> logout(final HttpServletRequest request) {
         final HttpSession session = request.getSession();
 
-        session.setAttribute("userId", userId);
+        session.invalidate();
 
         return ResponseEntity.noContent().build();
     }
@@ -70,10 +76,8 @@ public class AppUserController {
     }
 
     @PostMapping(value = "/password/randomkey")
-    @ExtractUserId
     public ResponseEntity<?> verifyRandomKey(@Valid @RequestBody MailDto.Request.RandomKeyVerification dto) {
-        Long userId = ExtractUserIdAspect.getUserId();
-        mailService.verifyRandomKey(userId, dto.getRandomKey());
+        mailService.verifyRandomKey(dto.getEmail(), dto.getRandomKey());
         return ResponseEntity.noContent().build();
     }
 
