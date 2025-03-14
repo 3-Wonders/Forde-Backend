@@ -28,6 +28,7 @@ import com.project.forde.util.FileStore;
 import com.project.forde.util.PasswordUtils;
 import com.project.forde.util.RedisStore;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -438,23 +439,25 @@ public class AppUserService {
      * @param dto (이메일, 패스워드)
      * @return 유저 아이디
      */
-    public Long login(RequestLoginDto dto) {
+    public void login(RequestLoginDto dto, final HttpServletRequest request) {
         AppUser user = appUserRepository.findByEmailAndUserPwIsNotNull(dto.getEmail())
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
-
-        if(user.getDeleted()) {
-            throw new CustomException(ErrorCode.DELETED_USER);
-        }
-
-        if(!user.getVerified()) {
-            throw new CustomException(ErrorCode.NOT_VERIFIED_USER);
-        }
 
         if(!PasswordUtils.checkPassword(dto.getPassword(), user.getUserPw())) {
             throw new CustomException(ErrorCode.NOT_MATCHED_LOGIN_INFO);
         }
 
-        return user.getUserId();
+        if(user.getDeleted()) {
+            throw new CustomException(ErrorCode.DELETED_USER);
+        }
+
+        final HttpSession session = request.getSession();
+
+        session.setAttribute("userId", user.getUserId());
+
+        if(!user.getVerified()) {
+            throw new CustomException(ErrorCode.NOT_VERIFIED_USER);
+        }
     }
 
     /**
@@ -510,23 +513,19 @@ public class AppUserService {
 
     /**
      * 사용자의 비밀번호를 수정합니다.
+     * @param email 변경하고자 하는 계정의 이메일
      * @param passWord 변경하고자 하는 비밀번호
      */
-    @UserVerify
-    public void updatePassword(String passWord) {
-        Long userId = UserVerifyAspect.getUserId();
-
-        AppUser appUser = getUser(userId);
-
-        if(appUser.getUserPw() == null) {
-            throw new CustomException(ErrorCode.CAN_NOT_USE_SNS_USER);
-        }
+    public void updatePassword(String email, String passWord) {
+        System.out.println("여기 들어옴");
+        AppUser appUser = appUserRepository.findByEmailAndUserPwIsNotNull(email)
+                .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
 
         appUser.setUserPw(PasswordUtils.encodePassword(passWord));
 
         appUserRepository.save(appUser);
 
-        redisStore.deleteField("email:randomKey:" + userId, "randomKeyValue");
+        redisStore.deleteField("email:randomKey:" + email, "randomKeyValue");
     }
 
     /**

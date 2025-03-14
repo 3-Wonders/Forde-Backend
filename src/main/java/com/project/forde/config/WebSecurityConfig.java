@@ -4,6 +4,7 @@ import com.project.forde.entity.Sns;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
 import com.project.forde.repository.SnsRepository;
+import com.project.forde.service.AppUserService;
 import com.project.forde.service.SnsService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.context.annotation.Bean;
@@ -27,9 +28,11 @@ import java.nio.charset.StandardCharsets;
 @EnableWebSecurity
 public class WebSecurityConfig {
     private final SnsService snsService;
+    private final AppUserService appUserService;
 
-    public WebSecurityConfig(SnsService snsService) {
+    public WebSecurityConfig(SnsService snsService, AppUserService appUserService) {
         this.snsService = snsService;
+        this.appUserService = appUserService;
     }
 
     @Bean
@@ -64,6 +67,7 @@ public class WebSecurityConfig {
 
                 if(checkAuth != null) {
                     request.getSession().setAttribute("userId", checkAuth);
+                    appUserService.getUser(checkAuth);
                 }
 
                 String redirectUrl = "http://localhost:5173/callback?success=true";

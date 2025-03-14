@@ -118,10 +118,7 @@ public class SnsService extends DefaultOAuth2UserService {
         }
         // 로그인일 경우
         else {
-            Long userId = sns.get().getAppUser().getUserId();
-            appUserService.getUser(userId);
-
-            return userId;
+            return sns.get().getAppUser().getUserId();
         }
     }
 
