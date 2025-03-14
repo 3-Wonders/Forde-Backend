@@ -6,11 +6,11 @@ import com.project.forde.entity.BoardImage;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.factory.Mappers;
+import org.springframework.stereotype.Component;
 
-@Mapper
+@Component
+@Mapper(componentModel = "spring", uses = { FileUrlResolver.class })
 public interface BoardImageMapper {
-    BoardImageMapper INSTANCE = Mappers.getMapper(BoardImageMapper.class);
-
     @Mapping(source = "image.size", target = "imageSize")
     @Mapping(source = "image.extension", target = "imageType")
     @Mapping(source = "image.storePath", target = "imagePath")
@@ -18,6 +18,6 @@ public interface BoardImageMapper {
     BoardImage toEntityWithoutBoard(FileDto image);
 
     @Mapping(source = "image.imageId", target = "imageId")
-    @Mapping(source = "image.imagePath", target = "path")
+    @Mapping(source = "image.imagePath", target = "path", qualifiedByName = "getDefaultThumbnailPath")
     DummyImageDto.Response.Image toImage(BoardImage image);
 }
