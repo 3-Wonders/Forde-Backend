@@ -1,12 +1,10 @@
 package com.project.forde.entity;
 
 import jakarta.persistence.*;
+import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
+import org.hibernate.annotations.*;
 
 import java.time.LocalDateTime;
 
@@ -54,4 +52,7 @@ public class Comment {
 
     @Column(name = "deleted_time")
     private LocalDateTime deletedTime;
+
+    @Formula("(SELECT COUNT(*) FROM comment c WHERE c.parent_id = comment_id)")
+    private Boolean hasReply;
 }

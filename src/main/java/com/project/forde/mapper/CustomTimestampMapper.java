@@ -2,6 +2,7 @@ package com.project.forde.mapper;
 
 import com.project.forde.util.CustomTimestamp;
 import org.mapstruct.Qualifier;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
@@ -9,6 +10,7 @@ import java.time.LocalDateTime;
 @interface CustomTimestampTranslator { }
 @Qualifier @interface MapCreatedTime { }
 
+@Component
 @CustomTimestampTranslator
 public class CustomTimestampMapper {
     @MapCreatedTime

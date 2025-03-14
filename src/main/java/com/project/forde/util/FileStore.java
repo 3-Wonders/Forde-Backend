@@ -5,19 +5,23 @@ import com.google.cloud.storage.Bucket;
 import com.project.forde.dto.FileDto;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @Slf4j
 @Component
-@AllArgsConstructor
 public class FileStore {
-    private Bucket bucket;
+    private final Bucket bucket;
+
+    public FileStore(Bucket bucket) {
+        this.bucket = bucket;
+    }
 
     private String getStoreFileName(String ext) {
         String uuid = UUID.randomUUID().toString();
@@ -27,6 +31,33 @@ public class FileStore {
     private String getExtension(String originalFilename) {
         int pos = originalFilename.lastIndexOf(".");
         return originalFilename.substring(pos + 1);
+    }
+
+    private String getPath(String storePath) {
+        return String.format(
+                "https://firebasestorage.googleapis.com/v0/b/%s/o/%s?alt=media",
+                bucket.getName(),
+                URLEncoder.encode(storePath, StandardCharsets.UTF_8)
+        );
+    }
+
+    public String getProfilePath(String storePath) {
+        log.info("get default thumbnail path: [storePath : {}]", storePath);
+
+        if (storePath == null || storePath.isEmpty()) {
+            return getPath("profile/default.png");
+        }
+
+        return getPath(storePath);
+    }
+
+    public String getThumbnailPath(String storePath) {
+        log.info("get default thumbnail path: [storePath : {}]", storePath);
+        if (storePath == null || storePath.isEmpty()) {
+            return getPath("thumbnail/default.png");
+        }
+
+        return getPath(storePath);
     }
 
     public FileDto storeFile(String directoryPath, MultipartFile file) {
