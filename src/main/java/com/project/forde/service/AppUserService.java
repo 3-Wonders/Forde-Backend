@@ -518,8 +518,9 @@ public class AppUserService {
      * 사용자의 비밀번호를 수정합니다.
      * @param email 변경하고자 하는 계정의 이메일
      * @param passWord 변경하고자 하는 비밀번호
+     * @param randomKey 발급받은 랜덤키
      */
-    public void updatePassword(String email, String passWord) {
+    public void updatePassword(String email, String passWord, String randomKey) {
         System.out.println("여기 들어옴");
         AppUser appUser = appUserRepository.findByEmailAndUserPwIsNotNull(email)
                 .orElseThrow(() -> new CustomException(ErrorCode.NOT_FOUND_USER));
@@ -528,7 +529,7 @@ public class AppUserService {
 
         appUserRepository.save(appUser);
 
-        redisStore.deleteField("email:randomKey:" + email, "randomKeyValue");
+        redisStore.deleteField("password:randomKey:" + randomKey, "emailValue");
     }
 
     /**

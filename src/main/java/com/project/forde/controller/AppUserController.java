@@ -77,7 +77,7 @@ public class AppUserController {
 
     @PostMapping(value = "/password/randomkey")
     public ResponseEntity<?> verifyRandomKey(@Valid @RequestBody MailDto.Request.RandomKeyVerification dto) {
-        mailService.verifyRandomKey(dto.getEmail(), dto.getRandomKey());
+        mailService.verifyRandomKey(dto.getRandomKey());
         return ResponseEntity.noContent().build();
     }
 
