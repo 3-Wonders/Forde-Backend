@@ -14,6 +14,7 @@ import com.project.forde.dto.board.BoardDto;
 import com.project.forde.dto.sns.SnsDto;
 import com.project.forde.dto.tag.TagDto;
 import com.project.forde.entity.*;
+import com.project.forde.entity.composite.FollowPK;
 import com.project.forde.entity.composite.InterestTagPK;
 import com.project.forde.exception.CustomException;
 import com.project.forde.exception.ErrorCode;
@@ -31,6 +32,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.User;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -52,15 +54,28 @@ public class AppUserService {
     private final BoardTagRepository boardTagRepository;
     private final CommentRepository commentRepository;
     private final LikeRepository likeRepository;
+    private final FollowRepository followRepository;
     private final RedisStore redisStore;
     private final FileStore fileStore;
     private final BoardMapper boardMapper;
     
     private final AppUserMapper appUserMapper;
 
-    public ResponseOtherUserDto getOtherUser(Long userId) {
+    @UserVerify
+    public ResponseOtherUserDto getOtherUser(Long searchUserId) {
+        boolean isFollow = false;
+        Long userId = UserVerifyAspect.getUserId();
         AppUser user = this.getUser(userId);
-        return appUserMapper.toResponseOtherUserDto(user);
+
+        AppUser searchUser = this.getUser(searchUserId);
+
+        FollowPK followPK = FollowMapper.INSTANCE.toPK(searchUser, user);
+        Optional<Follow> follow = followRepository.findByFollowPK(followPK);
+        if(follow.isPresent()) {
+            isFollow = true;
+        }
+
+        return appUserMapper.toResponseOtherUserDto(searchUser, isFollow);
     }
 
     /**
