@@ -73,8 +73,11 @@ public class SnsService extends DefaultOAuth2UserService {
 
                 profile = (Map<String, Object>) kakaoAccount.get("profile");
 
-                if(profile.get("profile_image_url") != null) {
+                try {
                     profilePath = (String) profile.get("profile_image_url");
+                }
+                catch(NullPointerException e) {
+                    log.info("카카오 프로필 이미지를 가져오는 중 에러가 발생하였습니다.");
                 }
 
                 break;
@@ -102,7 +105,6 @@ public class SnsService extends DefaultOAuth2UserService {
                 email = oAuth2User.getAttribute("email");
                 if(oAuth2User.getAttribute("avatar_url") != null) {
                     profilePath = oAuth2User.getAttribute("avatar_url");
-                    log.info("깃허브 프로필 주소 : {}", profilePath);
                 }
                 break;
         }
