@@ -61,22 +61,25 @@ public class SnsService extends DefaultOAuth2UserService {
         String email = null;
         switch (snsKind) {
             case "1001" : // 카카오
-                Long kakaoSnsId = oAuth2User.getAttribute("id");
+                String kakaoSnsId = oAuth2User.getAttribute("id").toString();
                 assert kakaoSnsId != null;
                 socialId = kakaoSnsId.toString();
+                Map<String, Object> profile;
 
                 Map<String, Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
                 if(kakaoAccount == null) {
                     throw new CustomException(ErrorCode.NOT_FOUND_SNS_ACCOUNT);
                 }
 
-                Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-//                if(profile == null) {
-//                    throw new CustomException(ErrorCode.NOT_FOUND_SNS_PROFILE);
-//                }
-                if(profile != null) {
-                    profilePath = (String) profile.get("profile_image_url");
+                if(kakaoAccount.get("profile") != null) {
+                    log.info("profile 문제");
                 }
+                profile = (Map<String, Object>) kakaoAccount.get("profile");
+
+                if(kakaoAccount.get("profile") != null) {
+                    log.info("profilePath 문제");
+                }
+                profilePath = (String) profile.get("profile_image_url");
 
                 break;
             case "1002" : // 네이버
@@ -96,12 +99,15 @@ public class SnsService extends DefaultOAuth2UserService {
                 email = oAuth2User.getAttribute("email");
                 profilePath = oAuth2User.getAttribute("picture");
                 break;
-            case "1004" :
+            case "1004" : // 깃허브
                 Integer githubSnsId = oAuth2User.getAttribute("id");
                 assert githubSnsId != null;
                 socialId = githubSnsId.toString();
                 email = oAuth2User.getAttribute("email");
-                profilePath = oAuth2User.getAttribute("avatar_url");
+                if(oAuth2User.getAttribute("avatar_url") != null) {
+                    profilePath = oAuth2User.getAttribute("avatar_url");
+                    log.info("깃허브 프로필 주소 : {}", profilePath);
+                }
                 break;
         }
 
