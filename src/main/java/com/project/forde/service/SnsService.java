@@ -71,15 +71,11 @@ public class SnsService extends DefaultOAuth2UserService {
                     throw new CustomException(ErrorCode.NOT_FOUND_SNS_ACCOUNT);
                 }
 
-                if(kakaoAccount.get("profile") != null) {
-                    log.info("profile 문제");
-                }
                 profile = (Map<String, Object>) kakaoAccount.get("profile");
 
-                if(kakaoAccount.get("profile") != null) {
-                    log.info("profilePath 문제");
+                if(profile.get("profile_image_url") != null) {
+                    profilePath = (String) profile.get("profile_image_url");
                 }
-                profilePath = (String) profile.get("profile_image_url");
 
                 break;
             case "1002" : // 네이버
