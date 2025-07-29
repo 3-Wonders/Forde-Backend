@@ -38,6 +38,7 @@ out/
 
 ### env ###
 application.properties
+crawling.properties
 firebase.json
 
 ### Test ###
@@ -46,3 +47,6 @@ generated-test-sources/
 gradle
 gradlew
 gradlew.bat
+
+### Log File ###
+output/**

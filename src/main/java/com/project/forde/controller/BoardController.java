@@ -2,6 +2,7 @@ package com.project.forde.controller;
 
 import com.project.forde.dto.board.BoardDto;
 import com.project.forde.service.BoardService;
+import com.project.forde.type.BoardTypeEnum;
 import com.project.forde.type.SortBoardTypeEnum;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +42,14 @@ public class BoardController {
         return ResponseEntity.ok(boardService.getRecentPosts(page, count, SortBoardTypeEnum.B));
     }
 
+    @GetMapping("/question")
+    public ResponseEntity<?> getQuestions(
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.ok(boardService.getRecentPosts(page, count, SortBoardTypeEnum.Q));
+    }
+
     @GetMapping("/board/search")
     public ResponseEntity<?> getPostSearch(
             @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
@@ -57,12 +66,65 @@ public class BoardController {
 
     @GetMapping("/board/{boardId}/update")
     public ResponseEntity<?> getUpdatePost(@PathVariable("boardId") final Long boardId) {
-        return ResponseEntity.ok(boardService.getUpdatePost(1L, boardId));
+        return ResponseEntity.ok(boardService.getUpdatePost(boardId));
+    }
+
+    @GetMapping("/board/following")
+    public ResponseEntity<?> getFollowingNews(
+            @RequestParam(value = "type", required = false, defaultValue = "A") Character type,
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        boolean isType = BoardTypeEnum.findByType(type) != null;
+
+        if (!isType) {
+            type = null;
+        }
+
+        return ResponseEntity.ok(boardService.getFollowingNews(page, count, type));
+    }
+
+    @GetMapping("/news/daily")
+    public ResponseEntity<?> getDailyNews(
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.ok(boardService.getDailyNews(page, count));
+    }
+
+    @GetMapping("/news/monthly")
+    public ResponseEntity<?> getMonthlyNews(
+            @RequestParam(value = "page", required = false, defaultValue = "1") final int page,
+            @RequestParam(value = "count", required = false, defaultValue = "5") final int count
+    ) {
+        return ResponseEntity.ok(boardService.getMonthlyNews(page, count));
+    }
+
+    @GetMapping("/news/recommend")
+    public ResponseEntity<?> getRecommendNews() {
+        return ResponseEntity.ok(boardService.getRecommendNews());
+    }
+
+    @GetMapping("/board/popular")
+    public ResponseEntity<?> getPopularPosts() {
+        return ResponseEntity.ok(boardService.getPopularPosts());
     }
 
     @PostMapping(value = "/board", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createBoard(@Valid @ModelAttribute final BoardDto.Request request) {
-        Long boardId = boardService.create(1L, request);
+    public ResponseEntity<?> createBoard(@Valid @ModelAttribute final BoardDto.Request.Create request) {
+        Long boardId = boardService.create(request);
         return ResponseEntity.created(URI.create("/" + boardId)).build();
+    }
+
+    @PatchMapping(value = "/board/{boardId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<?> updateBoard(@PathVariable("boardId") final Long boardId, @Valid @ModelAttribute final BoardDto.Request.Update request) {
+        boardService.update(boardId, request);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/board/{boardId}")
+    public ResponseEntity<?> deleteBoard(@PathVariable("boardId") final Long boardId) {
+        boardService.delete(boardId);
+        return ResponseEntity.noContent().build();
     }
 }

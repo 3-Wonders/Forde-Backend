@@ -1,6 +1,7 @@
 package com.project.forde.like;
 
 import com.project.forde.AbstractTest;
+import com.project.forde.entity.composite.BoardLikePK;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.BoardRepository;
 import com.project.forde.repository.LikeRepository;
@@ -33,7 +34,7 @@ public class LikeServiceTest extends AbstractTest {
     void createLike() {
         Mockito.when(appUserRepository.findByUserId(1L)).thenReturn(Optional.of(super.getAppUser()));
         Mockito.when(boardRepository.findById(1L)).thenReturn(Optional.of(super.getBoard()));
-        Mockito.when(likeRepository.findByUserAndBoard(super.getAppUser(), super.getBoard())).thenReturn(Optional.empty());
+        Mockito.when(likeRepository.findByBoardLikePK(new BoardLikePK(super.getAppUser(), super.getBoard()))).thenReturn(Optional.empty());
 
         likeService.createLike(1L, 1L);
 
@@ -46,7 +47,7 @@ public class LikeServiceTest extends AbstractTest {
     void deleteLike() {
         Mockito.when(appUserRepository.findByUserId(1L)).thenReturn(Optional.of(super.getAppUser()));
         Mockito.when(boardRepository.findById(1L)).thenReturn(Optional.of(super.getBoard()));
-        Mockito.when(likeRepository.findByUserAndBoard(super.getAppUser(), super.getBoard())).thenReturn(Optional.of(super.getBoardLike()));
+        Mockito.when(likeRepository.findByBoardLikePK(new BoardLikePK(super.getAppUser(), super.getBoard()))).thenReturn(Optional.of(super.getBoardLike()));
 
         likeService.deleteLike(1L, 1L);
 

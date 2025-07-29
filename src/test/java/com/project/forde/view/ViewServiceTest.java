@@ -1,6 +1,7 @@
 package com.project.forde.view;
 
 import com.project.forde.AbstractTest;
+import com.project.forde.entity.composite.BoardViewPK;
 import com.project.forde.repository.AppUserRepository;
 import com.project.forde.repository.BoardRepository;
 import com.project.forde.repository.ViewRepository;
@@ -37,7 +38,7 @@ public class ViewServiceTest extends AbstractTest {
 
         Mockito.when(appUserRepository.findByUserId(userId)).thenReturn(Optional.of(super.getAppUser()));
         Mockito.when(boardRepository.findById(boardId)).thenReturn(Optional.of(super.getBoard()));
-        Mockito.when(viewRepository.findByUserAndBoard(super.getAppUser(), super.getBoard())).thenReturn(Optional.empty());
+        Mockito.when(viewRepository.findByBoardViewPK(new BoardViewPK(super.getAppUser(), super.getBoard()))).thenReturn(Optional.empty());
 
         // then
         viewService.createView(userId, boardId);

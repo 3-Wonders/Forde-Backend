@@ -170,13 +170,13 @@ public class BoardControllerTest {
     @Test
     @DisplayName("게시글 수정 가져오기 성공")
     void getUpdatePostSuccess() throws Exception {
-        Mockito.when(boardService.getUpdatePost(1L, 1L)).thenReturn(new BoardDto.Response.Update(
+        Mockito.when(boardService.getUpdatePost(1L)).thenReturn(new BoardDto.Response.Update(
                 1L,
                 "title",
                 "content",
                 "content",
                 null,
-                List.of(new TagDto.Response.Tag(1L, "tag")),
+                List.of(new TagDto.Response.TagWithoutCount(1L, "tag")),
                 List.of(1L),
                 "2021-08-01 13:00:00"
         ));
@@ -185,7 +185,7 @@ public class BoardControllerTest {
                 get("/board/1/update")
         ).andExpect(status().isOk());
 
-        Mockito.verify(boardService, Mockito.times(1)).getUpdatePost(1L, 1L);
+        Mockito.verify(boardService, Mockito.times(1)).getUpdatePost(1L);
     }
 
     @Test
@@ -195,7 +195,7 @@ public class BoardControllerTest {
                 get("/board/invalidBoardId/update")
         ).andExpect(status().isBadRequest());
 
-        Mockito.verify(boardService, Mockito.times(0)).getUpdatePost(1L, 1L);
+        Mockito.verify(boardService, Mockito.times(0)).getUpdatePost(1L);
     }
 
     @Test
@@ -204,11 +204,11 @@ public class BoardControllerTest {
         Mockito.when(boardService.getPost(1L)).thenReturn(new BoardDto.Response.Detail(
                 1L,
                 "title",
-                new AppUserDto.Response.Intro(1L, "nickname", "profile"),
+                new AppUserDto.Response.Intro(1L, "nickname", "email", "profile"),
                 "title",
                 "content",
                 null,
-                List.of(new TagDto.Response.Tag(1L, "tag")),
+                List.of(new TagDto.Response.TagWithoutCount(1L, "tag")),
                 false,
                 0L,
                 0L,

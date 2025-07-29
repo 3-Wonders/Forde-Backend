@@ -4,7 +4,7 @@ import com.project.forde.AbstractTest;
 import com.project.forde.dto.FileDto;
 import com.project.forde.dto.board.BoardDto;
 import com.project.forde.entity.Board;
-import com.project.forde.entity.DummyImage;
+import com.project.forde.entity.BoardImage;
 import com.project.forde.entity.Tag;
 import com.project.forde.exception.CustomException;
 import com.project.forde.repository.*;
@@ -37,8 +37,6 @@ public class BoardServiceTest extends AbstractTest {
     @Mock
     private TagRepository tagRepository;
     @Mock
-    private DummyImageRepository dummyImageRepository;
-    @Mock
     private BoardRepository boardRepository;
     @Mock
     private BoardTagRepository boardTagRepository;
@@ -54,7 +52,7 @@ public class BoardServiceTest extends AbstractTest {
                 .thenReturn(Optional.empty());
 
         Assertions.assertThrows(CustomException.class, () -> {
-            boardService.create(3L, new BoardDto.Request("N", "제목1", "내용1", List.of(1L), null, null));
+            boardService.create(new BoardDto.Request.Create("N", "제목1", "내용1", List.of(1L), null, null));
         });
 
         Mockito.verify(boardRepository, Mockito.never()).save(ArgumentMatchers.any(Board.class));
@@ -69,7 +67,7 @@ public class BoardServiceTest extends AbstractTest {
                 .thenReturn(List.of(new Tag[]{ super.getTag(), super.getTag(), super.getTag(), super.getTag() }));
 
         Assertions.assertThrows(CustomException.class, () -> {
-            boardService.create(1L, new BoardDto.Request("N", "제목1", "내용1", List.of(1L), null, null));
+            boardService.create(new BoardDto.Request.Create("N", "제목1", "내용1", List.of(1L), null, null));
         });
 
         Mockito.verify(appUserRepository, Mockito.times(1)).findByUserId(Mockito.anyLong());
@@ -89,7 +87,7 @@ public class BoardServiceTest extends AbstractTest {
         Mockito.when(boardTagRepository.saveAll(Mockito.any()))
                 .thenReturn(null);
 
-        Long boardId = boardService.create(1L, new BoardDto.Request("N", "제목1", "내용1", List.of(1L), null, null));
+        Long boardId = boardService.create(new BoardDto.Request.Create("N", "제목1", "내용1", List.of(1L), null, null));
 
         System.out.println("Board ID: " + boardId);
         Assertions.assertNotNull(boardId);
@@ -120,7 +118,7 @@ public class BoardServiceTest extends AbstractTest {
         Mockito.when(boardTagRepository.saveAll(Mockito.any()))
                 .thenReturn(null);
 
-        Long boardId = boardService.create(1L, new BoardDto.Request("N", "제목1", "내용1", List.of(1L), super.getMockMultipartFile(), null));
+        Long boardId = boardService.create(new BoardDto.Request.Create("N", "제목1", "내용1", List.of(1L), super.getMockMultipartFile(), null));
         System.out.println("Board ID: " + boardId);
 
         Assertions.assertNotNull(boardId);
@@ -149,19 +147,19 @@ public class BoardServiceTest extends AbstractTest {
                 .thenReturn(List.of(new Tag[]{ super.getTag() }));
         Mockito.when(boardTagRepository.saveAll(Mockito.any()))
                 .thenReturn(null);
-        Mockito.when(dummyImageRepository.findAllByImageIdIn(Mockito.anyList()))
-                .thenReturn(List.of(new DummyImage[]{ super.getDummyImage() }));
+        Mockito.when(boardImageRepository.findAllByImageIdInAndBoardIsNull(Mockito.anyList()))
+                .thenReturn(List.of(new BoardImage[]{ super.getBoardImage() }));
         Mockito.when(boardImageRepository.saveAll(Mockito.any()))
                 .thenReturn(null);
-        Mockito.doNothing().when(dummyImageRepository).deleteAllInBatch(Mockito.anyList());
+        Mockito.doNothing().when(boardImageRepository).deleteAllInBatch(Mockito.anyList());
 
-        Long boardId = boardService.create(1L, new BoardDto.Request("N", "제목1", "내용1", List.of(1L), super.getMockMultipartFile(), List.of(1L)));
+        Long boardId = boardService.create(new BoardDto.Request.Create("N", "제목1", "내용1", List.of(1L), super.getMockMultipartFile(), List.of(1L)));
         System.out.println("Board ID: " + boardId);
 
         Assertions.assertNotNull(boardId);
         Mockito.verify(fileStore, Mockito.times(1)).storeFile(Mockito.anyString(), Mockito.any(MultipartFile.class));
         Mockito.verify(boardRepository, Mockito.times(1)).save(ArgumentMatchers.any(Board.class));
-        Mockito.verify(dummyImageRepository, Mockito.times(1)).deleteAllInBatch(Mockito.anyList());
+        Mockito.verify(boardImageRepository, Mockito.times(1)).deleteAllInBatch(Mockito.anyList());
     }
     
     @Test
@@ -250,7 +248,7 @@ public class BoardServiceTest extends AbstractTest {
         Mockito.when(boardRepository.findByBoardId(Mockito.anyLong()))
                 .thenReturn(Optional.of(super.getBoard()));
 
-        BoardDto.Response.Update update = boardService.getUpdatePost(1L, 1L);
+        BoardDto.Response.Update update = boardService.getUpdatePost(1L);
 
         System.out.println("Board Id: " + update.getBoardId());
         System.out.println("Board Title: " + update.getTitle());
@@ -277,7 +275,7 @@ public class BoardServiceTest extends AbstractTest {
                 .thenReturn(Optional.empty());
 
         Assertions.assertThrows(CustomException.class, () -> {
-            boardService.getUpdatePost(1L, 1L);
+            boardService.getUpdatePost(1L);
         });
     }
 
@@ -315,7 +313,7 @@ public class BoardServiceTest extends AbstractTest {
         Assertions.assertNotNull(detail.getCreatedTime());
 
         Mockito.verify(boardRepository, Mockito.times(1)).findBoardIncludeUploaderByBoardId(ArgumentMatchers.anyLong());
-        Mockito.verify(boardTagRepository, Mockito.times(1)).findAllByBoard(ArgumentMatchers.any());
+        Mockito.verify(boardTagRepository, Mockito.times(1)).findAllByBoardTagPK_Board(ArgumentMatchers.any());
     }
 
     @Test
