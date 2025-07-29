@@ -97,9 +97,10 @@ public class MailService {
 
         redisStore.deleteField("email:verification:" + dto.getEmail(), "verificationCode");
 
-
         String randomKey = RandomStringUtils.random(48, 33, 125, true, true);
-        redisStore.set("email:randomKey:" + dto.getEmail(), "randomKeyValue", randomKey, 10);
+        while(redisStore.get("password:randomKey:" + randomKey, "emailValue") == null) {
+            redisStore.set("password:randomKey:" + randomKey, "emailValue", dto.getEmail(), 10);
+        }
 
         String title = "Forde 비밀번호 변경 페이지 URL";
         String content = "Forde 비밀번호 변경 페이지 URL 입니다. : http://localhost:5173/ch-password?key=" + randomKey;
@@ -107,19 +108,17 @@ public class MailService {
     }
 
     /**
-     * 랜덤키 유효성 검사를 수행합니다.
-     * @param email (이메일 )
+     * 랜덤키를 통해 이메일을 반환 및 유효성 검사를 진행합니다.
      * @param randomKey (랜덤키)
      */
-    public void verifyRandomKey(String email, String randomKey) {
-        String storedRandomKey = (String) redisStore.get("email:randomKey:" + email, "randomKeyValue");
+    public String verifyRandomKey(String randomKey) {
+        String storedEmail = (String) redisStore.get("password:randomKey:" + randomKey, "emailValue");
 
-        if(storedRandomKey == null) {
+        if(storedEmail == null) {
             throw new CustomException(ErrorCode.EXPIRED_RANDOM_KEY);
         }
-        if(!storedRandomKey.equals(randomKey)) {
-            throw new CustomException(ErrorCode.NOT_MATCHED_RANDOM_KEY);
-        }
+
+        return storedEmail;
     }
 
     /**
@@ -127,8 +126,8 @@ public class MailService {
      * @param dto (변경할 비밀번호, 발급받은 랜덤키)
      */
     public void verifyRandomKeyWithUpdatePassword(MailDto.Request.UpdatePassword dto) {
-        verifyRandomKey(dto.getEmail(), dto.getRandomKey());
-        appUserService.updatePassword(dto.getEmail(), dto.getPassword());
+        String email = verifyRandomKey(dto.getRandomKey());
+        appUserService.updatePassword(email, dto.getPassword(), dto.getRandomKey());
     }
 
     /**

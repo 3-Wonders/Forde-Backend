@@ -33,7 +33,8 @@ public interface AppUserMapper {
     @Mapping(source = "user.followerCount", target = "followerCount")
     @Mapping(source = "user.followingCount", target = "followingCount")
     @Mapping(source = "user.privateAccount", target = "isPrivate")
-    ResponseOtherUserDto toResponseOtherUserDto(AppUser user);
+    @Mapping(source = "isFollow", target = "isFollow")
+    ResponseOtherUserDto toResponseOtherUserDto(AppUser user, boolean isFollow);
 
     @Mapping(source = "user.userId", target = "userId")
     @Mapping(source = "user.nickname", target = "nickname")

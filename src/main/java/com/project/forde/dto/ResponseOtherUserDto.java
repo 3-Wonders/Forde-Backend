@@ -17,4 +17,5 @@ public class ResponseOtherUserDto {
     private Integer likeCount;
     private Integer commentCount;
     private Boolean isPrivate;
+    private Boolean isFollow;
 }

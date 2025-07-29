@@ -5,6 +5,7 @@ import com.project.forde.exception.ErrorCode;
 import com.project.forde.repository.SnsRepository;
 import com.project.forde.service.AppUserService;
 import com.project.forde.service.SnsService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -24,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 
 @Configuration
 @EnableWebSecurity
+@Slf4j
 public class WebSecurityConfig {
     private final SnsService snsService;
     private final AppUserService appUserService;
@@ -65,6 +67,7 @@ public class WebSecurityConfig {
 
                 if(checkAuth != null) {
                     request.getSession().setAttribute("userId", checkAuth);
+                    log.info("세션 발급 UserId : {}", checkAuth );
                     appUserService.getUser(checkAuth);
                 }
 

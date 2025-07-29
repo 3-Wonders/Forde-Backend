@@ -61,21 +61,23 @@ public class SnsService extends DefaultOAuth2UserService {
         String email = null;
         switch (snsKind) {
             case "1001" : // 카카오
-                Long kakaoSnsId = oAuth2User.getAttribute("id");
+                String kakaoSnsId = oAuth2User.getAttribute("id").toString();
                 assert kakaoSnsId != null;
                 socialId = kakaoSnsId.toString();
+                Map<String, Object> profile;
 
                 Map<String, Object> kakaoAccount = oAuth2User.getAttribute("kakao_account");
                 if(kakaoAccount == null) {
                     throw new CustomException(ErrorCode.NOT_FOUND_SNS_ACCOUNT);
                 }
 
-                Map<String, Object> profile = (Map<String, Object>) kakaoAccount.get("profile");
-//                if(profile == null) {
-//                    throw new CustomException(ErrorCode.NOT_FOUND_SNS_PROFILE);
-//                }
-                if(profile != null) {
+                profile = (Map<String, Object>) kakaoAccount.get("profile");
+
+                try {
                     profilePath = (String) profile.get("profile_image_url");
+                }
+                catch(NullPointerException e) {
+                    log.info("카카오 프로필 이미지를 가져오는 중 에러가 발생하였습니다.");
                 }
 
                 break;
@@ -96,12 +98,14 @@ public class SnsService extends DefaultOAuth2UserService {
                 email = oAuth2User.getAttribute("email");
                 profilePath = oAuth2User.getAttribute("picture");
                 break;
-            case "1004" :
+            case "1004" : // 깃허브
                 Integer githubSnsId = oAuth2User.getAttribute("id");
                 assert githubSnsId != null;
                 socialId = githubSnsId.toString();
                 email = oAuth2User.getAttribute("email");
-                profilePath = oAuth2User.getAttribute("avatar_url");
+                if(oAuth2User.getAttribute("avatar_url") != null) {
+                    profilePath = oAuth2User.getAttribute("avatar_url");
+                }
                 break;
         }
 
