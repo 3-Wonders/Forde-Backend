@@ -44,8 +44,14 @@ public class FileStore {
     public String getProfilePath(String storePath) {
         log.info("get default thumbnail path: [storePath : {}]", storePath);
 
-        if (storePath == null || storePath.isEmpty()) {
+        boolean isNullOrEmpty = storePath == null || storePath.isEmpty();
+        if (isNullOrEmpty) {
             return getPath("profile/default.png");
+        }
+
+        boolean isHttps = storePath.startsWith("https://");
+        if (isHttps) {
+            return storePath;
         }
 
         return getPath(storePath);
@@ -54,7 +60,7 @@ public class FileStore {
     public String getThumbnailPath(String storePath) {
         log.info("get default thumbnail path: [storePath : {}]", storePath);
         if (storePath == null || storePath.isEmpty()) {
-            return getPath("thumbnail/default.png");
+            return getPath("board/default.png");
         }
 
         return getPath(storePath);
